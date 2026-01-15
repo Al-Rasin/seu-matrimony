@@ -64,4 +64,28 @@ class AppColors {
   // Shimmer Colors
   static const Color shimmerBase = Color(0xFFE0E0E0);
   static const Color shimmerHighlight = Color(0xFFF5F5F5);
+
+  // ==================== Dark Mode Colors ====================
+
+  // Dark Background Colors
+  static const Color darkBackground = Color(0xFF121212);
+  static const Color darkSurface = Color(0xFF1E1E1E);
+  static const Color darkCard = Color(0xFF2C2C2C);
+
+  // Dark Text Colors
+  static const Color darkTextPrimary = Color(0xFFE0E0E0);
+  static const Color darkTextSecondary = Color(0xFFB0B0B0);
+  static const Color darkTextHint = Color(0xFF757575);
+
+  // Dark Border Colors
+  static const Color darkBorder = Color(0xFF424242);
+  static const Color darkDivider = Color(0xFF303030);
+
+  // Dark Icon Colors
+  static const Color darkIconPrimary = Color(0xFFBDBDBD);
+  static const Color darkIconSecondary = Color(0xFF757575);
+
+  // Dark Shimmer Colors
+  static const Color darkShimmerBase = Color(0xFF2C2C2C);
+  static const Color darkShimmerHighlight = Color(0xFF3D3D3D);
 }
