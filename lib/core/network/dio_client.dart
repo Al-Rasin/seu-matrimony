@@ -1,8 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import '../constants/api_constants.dart';
-import '../services/storage_service.dart';
-import '../services/firebase_service.dart';
 import 'api_interceptor.dart';
 
 class DioClient extends GetxService {

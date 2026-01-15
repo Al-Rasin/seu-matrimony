@@ -44,9 +44,8 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Claude documentation files (internal use only)
-**/claude.md
-PLAN.md
+# All markdown files (documentation kept locally only)
+*.md
 
 # Environment files
 .env
