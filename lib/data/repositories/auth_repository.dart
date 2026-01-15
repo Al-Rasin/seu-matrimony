@@ -1,43 +1,48 @@
+import 'dart:convert';
 import 'package:get/get.dart';
-import '../../core/network/dio_client.dart';
-import '../../core/constants/api_constants.dart';
-import '../../core/services/firebase_service.dart';
 import '../../core/services/storage_service.dart';
+import '../../core/services/mock_data_service.dart';
+import '../models/user_model.dart';
 
 class AuthRepository {
-  final DioClient _dioClient = Get.find<DioClient>();
-  final FirebaseService _firebaseService = Get.find<FirebaseService>();
   final StorageService _storageService = Get.find<StorageService>();
+  final MockDataService _mockDataService = Get.find<MockDataService>();
 
-  Future<Map<String, dynamic>> login({
+  /// Current logged in user
+  UserModel? _currentUser;
+  UserModel? get currentUser => _currentUser;
+
+  Future<UserModel> login({
     required String email,
     required String password,
   }) async {
-    try {
-      await _firebaseService.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    // Use mock data for development
+    if (MockDataService.useMockData) {
+      final result = await _mockDataService.login(email, password);
 
-      final idToken = await _firebaseService.getIdToken();
-
-      final response = await _dioClient.post(
-        ApiConstants.login,
-        data: {'firebaseToken': idToken},
-      );
-
-      if (response.statusCode == 200) {
-        _storageService.isLoggedIn = true;
-        return response.data;
+      if (!result.success) {
+        throw Exception(result.errorMessage ?? 'Login failed');
       }
 
-      throw Exception('Login failed');
-    } catch (e) {
-      rethrow;
+      // Save auth data
+      _storageService.isLoggedIn = true;
+      _storageService.accessToken = result.accessToken;
+      _storageService.refreshToken = result.refreshToken;
+
+      // Save user data
+      if (result.user != null) {
+        _currentUser = result.user;
+        await _storageService.saveUserData(jsonEncode(result.user!.toJson()));
+      }
+
+      return result.user!;
     }
+
+    // Real API implementation would go here
+    throw Exception('Backend not available');
   }
 
-  Future<Map<String, dynamic>> register({
+  Future<UserModel> register({
     required String email,
     required String password,
     required String fullName,
@@ -45,51 +50,68 @@ class AuthRepository {
     required String profileFor,
     String? idDocumentUrl,
   }) async {
-    try {
-      await _firebaseService.createUserWithEmailAndPassword(
+    // Use mock data for development
+    if (MockDataService.useMockData) {
+      final result = await _mockDataService.register(
         email: email,
         password: password,
+        fullName: fullName,
+        phone: phone,
+        profileFor: profileFor,
       );
 
-      final idToken = await _firebaseService.getIdToken();
-
-      final response = await _dioClient.post(
-        ApiConstants.register,
-        data: {
-          'firebaseToken': idToken,
-          'fullName': fullName,
-          'phone': phone,
-          'profileFor': profileFor,
-          'idDocumentUrl': idDocumentUrl,
-        },
-      );
-
-      if (response.statusCode == 201) {
-        return response.data;
+      if (!result.success) {
+        throw Exception(result.errorMessage ?? 'Registration failed');
       }
 
-      throw Exception('Registration failed');
-    } catch (e) {
-      rethrow;
+      // Save auth data
+      _storageService.isLoggedIn = true;
+      _storageService.accessToken = result.accessToken;
+      _storageService.refreshToken = result.refreshToken;
+
+      // Save user data
+      if (result.user != null) {
+        _currentUser = result.user;
+        await _storageService.saveUserData(jsonEncode(result.user!.toJson()));
+      }
+
+      return result.user!;
     }
+
+    // Real API implementation would go here
+    throw Exception('Backend not available');
   }
 
   Future<void> logout() async {
-    try {
-      await _firebaseService.signOut();
-      await _storageService.clearAuthData();
-    } catch (e) {
-      rethrow;
-    }
+    _currentUser = null;
+    await _storageService.clearAuthData();
   }
 
   Future<void> sendPasswordResetEmail(String email) async {
-    try {
-      await _firebaseService.sendPasswordResetEmail(email);
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      // Simulate sending reset email
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Check if user exists
+      final exists = await _mockDataService.emailExists(email);
+      if (!exists) {
+        throw Exception('No account found with this email');
+      }
+      return;
     }
+
+    throw Exception('Backend not available');
   }
 
   bool get isLoggedIn => _storageService.isLoggedIn;
+
+  /// Load saved user from storage
+  Future<UserModel?> loadSavedUser() async {
+    final userData = await _storageService.getUserData();
+    if (userData != null) {
+      _currentUser = UserModel.fromJson(jsonDecode(userData));
+      return _currentUser;
+    }
+    return null;
+  }
 }

@@ -38,16 +38,30 @@ class LoginController extends GetxController {
     try {
       isLoading.value = true;
 
-      await _authRepository.login(
+      final user = await _authRepository.login(
         email: emailController.text.trim(),
         password: passwordController.text,
       );
 
+      Get.snackbar(
+        'Welcome!',
+        'Hello, ${user.fullName}',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.green.shade100,
+        colorText: Colors.green.shade900,
+        duration: const Duration(seconds: 2),
+      );
+
       Get.offAllNamed(AppRoutes.home);
     } catch (e) {
+      String errorMessage = e.toString();
+      // Clean up the error message
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
       Get.snackbar(
         'Login Failed',
-        e.toString(),
+        errorMessage,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.shade100,
         colorText: Colors.red.shade900,

@@ -4,6 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:get_storage/get_storage.dart';
 import 'app/app.dart';
 
+/// Flag to track if Firebase is available
+bool isFirebaseInitialized = false;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -23,8 +26,15 @@ Future<void> main() async {
     ),
   );
 
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  // Initialize Firebase (optional - will work without config for development)
+  try {
+    await Firebase.initializeApp();
+    isFirebaseInitialized = true;
+    debugPrint('Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('Firebase not configured - running without Firebase: $e');
+    // App will continue without Firebase features
+  }
 
   // Initialize GetStorage
   await GetStorage.init();

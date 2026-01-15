@@ -16,19 +16,29 @@ class ApiConstants {
   static const String login = '/auth/login';
   static const String verifyPhone = '/auth/verify-phone';
   static const String verifyEmail = '/auth/verify-email';
+  static const String verifyOtp = '/auth/verify-otp';
+  static const String resendOtp = '/auth/resend-otp';
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
   static const String refreshToken = '/auth/refresh-token';
   static const String logout = '/auth/logout';
+  static const String checkUsername = '/auth/check-username';
+  static const String checkPhone = '/auth/check-phone';
 
   // User Endpoints
+  static const String profile = '/users/me';
   static const String currentUser = '/users/me';
+  static const String completeProfile = '/users/me/complete-profile';
   static const String updateBasicDetails = '/users/me/basic';
   static const String updatePersonalDetails = '/users/me/personal';
   static const String updateProfessionalDetails = '/users/me/professional';
   static const String updateFamilyDetails = '/users/me/family';
   static const String updatePreferences = '/users/me/preferences';
   static const String uploadPhoto = '/users/me/photos';
+  static const String uploadProfilePhoto = '/users/me/profile-photo';
+  static const String uploadSeuId = '/users/me/seu-id';
+  static const String changePassword = '/users/me/change-password';
+  static const String deleteAccount = '/users/me/delete';
   static const String userById = '/users';
 
   // Matches Endpoints

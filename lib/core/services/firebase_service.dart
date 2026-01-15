@@ -1,17 +1,42 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'storage_service.dart';
+import '../../main.dart' show isFirebaseInitialized;
 
+/// Firebase service with graceful fallback when Firebase is not configured
 class FirebaseService extends GetxService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  FirebaseAuth? _auth;
+  FirebaseMessaging? _messaging;
+  FirebaseStorage? _storage;
 
-  User? get currentUser => _auth.currentUser;
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  FirebaseAuth? get auth {
+    if (!isFirebaseInitialized) return null;
+    _auth ??= FirebaseAuth.instance;
+    return _auth;
+  }
+
+  FirebaseMessaging? get messaging {
+    if (!isFirebaseInitialized) return null;
+    _messaging ??= FirebaseMessaging.instance;
+    return _messaging;
+  }
+
+  FirebaseStorage? get storage {
+    if (!isFirebaseInitialized) return null;
+    _storage ??= FirebaseStorage.instance;
+    return _storage;
+  }
+
+  /// Check if Firebase is available
+  bool get isAvailable => isFirebaseInitialized;
+
+  User? get currentUser => auth?.currentUser;
+  Stream<User?> get authStateChanges =>
+      auth?.authStateChanges() ?? Stream.value(null);
 
   // Phone Authentication
   Future<void> verifyPhoneNumber({
@@ -21,7 +46,11 @@ class FirebaseService extends GetxService {
     required Function(String, int?) onCodeSent,
     required Function(String) onCodeAutoRetrievalTimeout,
   }) async {
-    await _auth.verifyPhoneNumber(
+    if (auth == null) {
+      debugPrint('Firebase Auth not available - skipping phone verification');
+      return;
+    }
+    await auth!.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: onVerificationCompleted,
       verificationFailed: onVerificationFailed,
@@ -32,9 +61,10 @@ class FirebaseService extends GetxService {
   }
 
   // Sign in with phone credential
-  Future<UserCredential> signInWithPhoneCredential(
+  Future<UserCredential?> signInWithPhoneCredential(
       PhoneAuthCredential credential) async {
-    return await _auth.signInWithCredential(credential);
+    if (auth == null) return null;
+    return await auth!.signInWithCredential(credential);
   }
 
   // Create credential from verification ID and SMS code
@@ -49,28 +79,34 @@ class FirebaseService extends GetxService {
   }
 
   // Email/Password Authentication
-  Future<UserCredential> createUserWithEmailAndPassword({
+  Future<UserCredential?> createUserWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    return await _auth.createUserWithEmailAndPassword(
+    if (auth == null) return null;
+    return await auth!.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
 
-  Future<UserCredential> signInWithEmailAndPassword({
+  Future<UserCredential?> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    return await _auth.signInWithEmailAndPassword(
+    if (auth == null) return null;
+    return await auth!.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
   }
 
   Future<void> sendPasswordResetEmail(String email) async {
-    await _auth.sendPasswordResetEmail(email: email);
+    if (auth == null) {
+      debugPrint('Firebase Auth not available - skipping password reset email');
+      return;
+    }
+    await auth!.sendPasswordResetEmail(email: email);
   }
 
   Future<void> sendEmailVerification() async {
@@ -84,26 +120,32 @@ class FirebaseService extends GetxService {
 
   // Sign out
   Future<void> signOut() async {
-    await _auth.signOut();
+    if (auth != null) {
+      await auth!.signOut();
+    }
     final storageService = Get.find<StorageService>();
     await storageService.clearAuthData();
   }
 
   // FCM Methods
   Future<String?> getFcmToken() async {
-    return await _messaging.getToken();
+    if (messaging == null) return null;
+    return await messaging!.getToken();
   }
 
   Future<void> subscribeToTopic(String topic) async {
-    await _messaging.subscribeToTopic(topic);
+    if (messaging == null) return;
+    await messaging!.subscribeToTopic(topic);
   }
 
   Future<void> unsubscribeFromTopic(String topic) async {
-    await _messaging.unsubscribeFromTopic(topic);
+    if (messaging == null) return;
+    await messaging!.unsubscribeFromTopic(topic);
   }
 
-  Future<NotificationSettings> requestNotificationPermissions() async {
-    return await _messaging.requestPermission(
+  Future<NotificationSettings?> requestNotificationPermissions() async {
+    if (messaging == null) return null;
+    return await messaging!.requestPermission(
       alert: true,
       badge: true,
       sound: true,
@@ -112,12 +154,16 @@ class FirebaseService extends GetxService {
   }
 
   // Firebase Storage Methods
-  Future<String> uploadFile({
+  Future<String?> uploadFile({
     required File file,
     required String path,
     Function(double)? onProgress,
   }) async {
-    final ref = _storage.ref().child(path);
+    if (storage == null) {
+      debugPrint('Firebase Storage not available - skipping file upload');
+      return null;
+    }
+    final ref = storage!.ref().child(path);
     final uploadTask = ref.putFile(file);
 
     if (onProgress != null) {
@@ -132,12 +178,13 @@ class FirebaseService extends GetxService {
   }
 
   Future<void> deleteFile(String path) async {
-    final ref = _storage.ref().child(path);
+    if (storage == null) return;
+    final ref = storage!.ref().child(path);
     await ref.delete();
   }
 
   // Upload profile photo
-  Future<String> uploadProfilePhoto({
+  Future<String?> uploadProfilePhoto({
     required File file,
     required String userId,
     Function(double)? onProgress,
@@ -149,7 +196,7 @@ class FirebaseService extends GetxService {
   }
 
   // Upload SEU ID document
-  Future<String> uploadIdDocument({
+  Future<String?> uploadIdDocument({
     required File file,
     required String userId,
     Function(double)? onProgress,

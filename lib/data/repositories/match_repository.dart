@@ -1,120 +1,158 @@
-import 'package:get/get.dart';
-import '../../core/network/dio_client.dart';
-import '../../core/constants/api_constants.dart';
+import '../../core/services/mock_data_service.dart';
 
 class MatchRepository {
-  final DioClient _dioClient = Get.find<DioClient>();
+  // Mock recommended matches data
+  final List<Map<String, dynamic>> _mockRecommendedMatches = [
+    {
+      'id': 'match_001',
+      'fullName': 'Fatima Ahmed',
+      'age': 26,
+      'occupation': 'Doctor',
+      'city': 'Dhaka',
+      'profilePhoto': null,
+    },
+    {
+      'id': 'match_002',
+      'fullName': 'Ayesha Rahman',
+      'age': 24,
+      'occupation': 'Software Engineer',
+      'city': 'Chittagong',
+      'profilePhoto': null,
+    },
+    {
+      'id': 'match_003',
+      'fullName': 'Nusrat Jahan',
+      'age': 25,
+      'occupation': 'Teacher',
+      'city': 'Sylhet',
+      'profilePhoto': null,
+    },
+    {
+      'id': 'match_004',
+      'fullName': 'Maliha Khan',
+      'age': 27,
+      'occupation': 'Banker',
+      'city': 'Dhaka',
+      'profilePhoto': null,
+    },
+  ];
 
   Future<Map<String, dynamic>> getMatches({
     int page = 1,
     int limit = 20,
     Map<String, dynamic>? filters,
   }) async {
-    try {
-      final queryParams = {
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      return {
+        'success': true,
+        'data': _mockRecommendedMatches,
         'page': page,
-        'limit': limit,
-        if (filters != null) ...filters,
+        'total': _mockRecommendedMatches.length,
       };
-
-      final response = await _dioClient.get(
-        ApiConstants.matches,
-        queryParameters: queryParams,
-      );
-      return response.data;
-    } catch (e) {
-      rethrow;
     }
+    throw Exception('Backend not available');
   }
 
   Future<Map<String, dynamic>> getRecommendedMatches() async {
-    try {
-      final response = await _dioClient.get(ApiConstants.recommendedMatches);
-      return response.data;
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return {
+        'success': true,
+        'data': _mockRecommendedMatches,
+      };
     }
+    throw Exception('Backend not available');
   }
 
   Future<Map<String, dynamic>> getNewlyJoined() async {
-    try {
-      final response = await _dioClient.get(ApiConstants.newlyJoined);
-      return response.data;
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return {
+        'success': true,
+        'data': _mockRecommendedMatches.reversed.toList(),
+      };
     }
+    throw Exception('Backend not available');
   }
 
   Future<Map<String, dynamic>> searchMatches(
       Map<String, dynamic> filters) async {
-    try {
-      final response = await _dioClient.get(
-        ApiConstants.searchMatches,
-        queryParameters: filters,
-      );
-      return response.data;
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      return {
+        'success': true,
+        'data': _mockRecommendedMatches,
+      };
     }
+    throw Exception('Backend not available');
   }
 
   Future<void> recordProfileView(String userId) async {
-    try {
-      await _dioClient.post('${ApiConstants.profileViews}/$userId');
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      return;
     }
+    throw Exception('Backend not available');
   }
 
   Future<Map<String, dynamic>> getWhoViewedMe() async {
-    try {
-      final response = await _dioClient.get(ApiConstants.whoViewedMe);
-      return response.data;
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return {
+        'success': true,
+        'data': _mockRecommendedMatches.take(2).toList(),
+      };
     }
+    throw Exception('Backend not available');
   }
 
   Future<Map<String, dynamic>> getViewedByMe() async {
-    try {
-      final response = await _dioClient.get(ApiConstants.viewedByMe);
-      return response.data;
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return {
+        'success': true,
+        'data': _mockRecommendedMatches.skip(1).take(2).toList(),
+      };
     }
+    throw Exception('Backend not available');
   }
 
   Future<void> addToShortlist(String userId) async {
-    try {
-      await _dioClient.post('${ApiConstants.shortlist}/$userId');
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      return;
     }
+    throw Exception('Backend not available');
   }
 
   Future<void> removeFromShortlist(String userId) async {
-    try {
-      await _dioClient.delete('${ApiConstants.shortlist}/$userId');
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      return;
     }
+    throw Exception('Backend not available');
   }
 
   Future<Map<String, dynamic>> getMyShortlist() async {
-    try {
-      final response = await _dioClient.get(ApiConstants.shortlist);
-      return response.data;
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return {
+        'success': true,
+        'data': _mockRecommendedMatches.take(1).toList(),
+      };
     }
+    throw Exception('Backend not available');
   }
 
   Future<Map<String, dynamic>> getShortlistedMe() async {
-    try {
-      final response = await _dioClient.get(ApiConstants.shortlistedMe);
-      return response.data;
-    } catch (e) {
-      rethrow;
+    if (MockDataService.useMockData) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      return {
+        'success': true,
+        'data': _mockRecommendedMatches.skip(2).take(1).toList(),
+      };
     }
+    throw Exception('Backend not available');
   }
 }

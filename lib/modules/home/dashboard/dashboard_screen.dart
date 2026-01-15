@@ -30,12 +30,12 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Welcome section
-              Obx(() => Text(
-                    'Welcome back,',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  )),
+              Text(
+                'Welcome back,',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
               Obx(() => Text(
                     controller.userName.value,
                     style: AppTextStyles.h3,

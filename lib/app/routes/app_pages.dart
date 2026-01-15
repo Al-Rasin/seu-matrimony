@@ -14,6 +14,7 @@ import '../../modules/splash/splash_screen.dart';
 import '../../modules/onboarding/onboarding_screen.dart';
 import '../../modules/auth/login/login_screen.dart';
 import '../../modules/auth/register/register_screen.dart';
+import '../../modules/auth/forgot_password/forgot_password_screen.dart';
 import '../../modules/registration/registration_screen.dart';
 import '../../modules/home/home_screen.dart';
 import '../../modules/matches/matches_screen.dart';
@@ -48,6 +49,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.register,
       page: () => const RegisterScreen(),
+      binding: AuthBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.forgotPassword,
+      page: () => const ForgotPasswordScreen(),
       binding: AuthBinding(),
     ),
     GetPage(

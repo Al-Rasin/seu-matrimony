@@ -70,6 +70,16 @@ class StorageService {
   set userData(Map<String, dynamic>? value) =>
       write(StorageKeys.userData, value);
 
+  /// Save user data as JSON string
+  Future<void> saveUserData(String jsonData) async {
+    await write(StorageKeys.userDataJson, jsonData);
+  }
+
+  /// Get user data as JSON string
+  Future<String?> getUserData() async {
+    return read<String>(StorageKeys.userDataJson);
+  }
+
   // FCM Token
   String? get fcmToken => read<String>(StorageKeys.fcmToken);
 
