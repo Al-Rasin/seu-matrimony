@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Claude documentation files (internal use only)
+**/claude.md
+PLAN.md
+
+# Environment files
+.env
+.env.*
