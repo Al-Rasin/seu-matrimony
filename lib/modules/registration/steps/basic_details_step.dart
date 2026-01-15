@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../registration_controller.dart';
+import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_text_styles.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_dropdown.dart';
@@ -90,21 +91,23 @@ class BasicDetailsStep extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.green.shade50 : Colors.grey.shade100,
+            color: isSelected
+                ? AppColors.primary.withValues(alpha: 0.1)
+                : Colors.grey.shade100,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? Colors.green : Colors.grey.shade300,
+              color: isSelected ? AppColors.primary : Colors.grey.shade300,
             ),
           ),
           child: Column(
             children: [
               Icon(icon,
-                  color: isSelected ? Colors.green : Colors.grey, size: 28),
+                  color: isSelected ? AppColors.primary : Colors.grey, size: 28),
               const SizedBox(height: 4),
               Text(
                 value,
                 style: TextStyle(
-                  color: isSelected ? Colors.green : Colors.grey,
+                  color: isSelected ? AppColors.primary : Colors.grey,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),

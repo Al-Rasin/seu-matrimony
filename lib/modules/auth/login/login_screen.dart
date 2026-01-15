@@ -14,13 +14,14 @@ class LoginScreen extends StatelessWidget {
     final controller = Get.put(LoginController());
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Top banner
+            // Top banner with logo
             Container(
               width: double.infinity,
-              height: 250,
+              height: 320,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -31,31 +32,28 @@ class LoginScreen extends StatelessWidget {
                   ],
                 ),
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
                 ),
               ),
               child: SafeArea(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.favorite,
-                        size: 40,
-                        color: AppColors.primary,
-                      ),
+                    // Logo
+                    Image.asset(
+                      'assets/images/splash_logo.png',
+                      width: 100,
+                      height: 150,
                     ),
                     const SizedBox(height: 16),
+                    // Title
                     Text(
                       'Login to your Account',
-                      style: AppTextStyles.h3.copyWith(color: Colors.white),
+                      style: AppTextStyles.h3.copyWith(
+                        color: const Color(0xFF2D2D2D),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -71,15 +69,15 @@ class LoginScreen extends StatelessWidget {
                   children: [
                     const SizedBox(height: 24),
                     CustomTextField(
-                      label: 'Email',
-                      hint: 'Please enter email',
+                      label: 'Username',
+                      hint: 'Please enter username',
                       controller: controller.emailController,
                       keyboardType: TextInputType.emailAddress,
-                      prefixIcon: const Icon(Icons.email_outlined,
+                      prefixIcon: const Icon(Icons.person_outline,
                           color: AppColors.iconSecondary),
                       validator: controller.validateEmail,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     PasswordTextField(
                       label: 'Password',
                       hint: 'Please enter password',
@@ -105,35 +103,44 @@ class LoginScreen extends StatelessWidget {
                           onPressed: controller.login,
                           isLoading: controller.isLoading.value,
                         )),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account? ",
-                          style: AppTextStyles.bodySmall,
-                        ),
-                        GestureDetector(
-                          onTap: controller.goToRegister,
-                          child: Text(
-                            'Sign Up',
+                    const SizedBox(height: 32),
+                    // Sign up link
+                    Center(
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        children: [
+                          Text(
+                            "Don't have an account? ",
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
                             ),
                           ),
-                        ),
-                        Text(
-                          ' here.',
-                          style: AppTextStyles.bodySmall,
-                        ),
-                      ],
+                          GestureDetector(
+                            onTap: controller.goToRegister,
+                            child: Text(
+                              'Sign Up',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            ' here.',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Center(
                       child: Text(
                         'Only verified SEU members can log in.',
-                        style: AppTextStyles.caption,
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.textHint,
+                        ),
                       ),
                     ),
                   ],

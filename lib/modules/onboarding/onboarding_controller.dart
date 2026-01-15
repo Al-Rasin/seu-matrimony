@@ -6,12 +6,12 @@ import '../../core/services/storage_service.dart';
 class OnboardingPage {
   final String title;
   final String description;
-  final IconData icon;
+  final String imagePath;
 
   OnboardingPage({
     required this.title,
     required this.description,
-    required this.icon,
+    required this.imagePath,
   });
 }
 
@@ -23,22 +23,22 @@ class OnboardingController extends GetxController {
 
   final List<OnboardingPage> onboardingPages = [
     OnboardingPage(
-      title: 'Create Your SEU Matrimony Profile',
+      title: 'Create Your SEU\nMatrimony Profile',
       description:
-          'Join the exclusive matrimonial platform for SEU students and alumni',
-      icon: Icons.person_add_outlined,
+          'Join the exclusive matrimonial\nplatform for SEU students and alumni',
+      imagePath: 'assets/images/onboarding_1.png',
     ),
     OnboardingPage(
-      title: 'Verified SEU Members Only',
+      title: 'Verified SEU\nMembers Only',
       description:
-          'Every profile is verified through a valid SEU Student ID or Alumni ID before approval',
-      icon: Icons.verified_user_outlined,
+          'Every profile is verified through a valid\nSEU Student ID or Alumni ID before approval',
+      imagePath: 'assets/images/onboarding_2.png',
     ),
     OnboardingPage(
-      title: 'Find Your Perfect Match',
+      title: 'Find Your\nPerfect Match',
       description:
-          'Search, connect, and build meaningful relationships within the SEU community',
-      icon: Icons.favorite_outline,
+          'Search, connect, and build meaningful\nrelationships within the SEU community',
+      imagePath: 'assets/images/onboarding_3.png',
     ),
   ];
 

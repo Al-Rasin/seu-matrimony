@@ -78,8 +78,8 @@ class DashboardScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryLight],
         ),
         borderRadius: BorderRadius.circular(12),
       ),

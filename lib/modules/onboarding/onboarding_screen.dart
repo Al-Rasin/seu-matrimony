@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'onboarding_controller.dart';
-import '../../app/themes/app_colors.dart';
-import '../../app/themes/app_text_styles.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -23,7 +21,7 @@ class OnboardingScreen extends StatelessWidget {
                 itemCount: controller.onboardingPages.length,
                 itemBuilder: (context, index) {
                   final page = controller.onboardingPages[index];
-                  return _buildPage(page);
+                  return _buildPage(page, index);
                 },
               ),
             ),
@@ -34,47 +32,79 @@ class OnboardingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPage(OnboardingPage page) {
+  Widget _buildPage(OnboardingPage page, int index) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              page.icon,
-              size: 100,
-              color: AppColors.primary,
+          const SizedBox(height: 40),
+          // Illustration
+          SizedBox(
+            width: 285,
+            height: 267,
+            child: Image.asset(
+              page.imagePath,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback to placeholder icons if image not found
+                return _buildPlaceholderIcon(index);
+              },
             ),
           ),
-          const SizedBox(height: 48),
+          const Spacer(),
+          // Title
           Text(
             page.title,
-            style: AppTextStyles.h3,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            page.description,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 30,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF343434),
+              height: 1.3,
             ),
             textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 20),
+          // Description
+          Text(
+            page.description,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+              color: Color(0xFF757575),
+              height: 1.6,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const Spacer(flex: 2),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderIcon(int index) {
+    final icons = [
+      Icons.person_add_outlined,
+      Icons.verified_user_outlined,
+      Icons.favorite_outline,
+    ];
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Icon(
+        icons[index],
+        size: 120,
+        color: const Color(0xFF00BF41),
       ),
     );
   }
 
   Widget _buildBottomSection(OnboardingController controller) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
       child: Column(
         children: [
           // Page indicators
@@ -82,50 +112,55 @@ class OnboardingScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
                   controller.onboardingPages.length,
-                  (index) => Container(
-                    width: controller.currentPage.value == index ? 24 : 8,
-                    height: 8,
+                  (index) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: controller.currentPage.value == index ? 30 : 13,
+                    height: controller.currentPage.value == index ? 8 : 13,
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
                       color: controller.currentPage.value == index
-                          ? AppColors.primary
-                          : AppColors.border,
-                      borderRadius: BorderRadius.circular(4),
+                          ? const Color(0xFF00BF41)
+                          : const Color(0xFFE0E0E0),
+                      borderRadius: BorderRadius.circular(
+                          controller.currentPage.value == index ? 10 : 7),
                     ),
                   ),
                 ),
               )),
-          const SizedBox(height: 32),
-          // Buttons
+          const SizedBox(height: 40),
+          // Buttons row
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Skip button
               TextButton(
                 onPressed: controller.skip,
-                child: Text(
+                child: const Text(
                   'Skip',
-                  style: AppTextStyles.buttonMedium.copyWith(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF737373),
                   ),
                 ),
               ),
-              const Spacer(),
-              Obx(() => SizedBox(
-                    width: 56,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: controller.next,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: EdgeInsets.zero,
+              // Next button
+              Obx(() => GestureDetector(
+                    onTap: controller.next,
+                    child: Container(
+                      width: 65,
+                      height: 65,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00BF41),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
                         controller.isLastPage
                             ? Icons.check
                             : Icons.arrow_forward,
                         color: Colors.white,
+                        size: 28,
                       ),
                     ),
                   )),
