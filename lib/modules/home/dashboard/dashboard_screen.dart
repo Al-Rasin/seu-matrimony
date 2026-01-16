@@ -4,6 +4,7 @@ import 'dashboard_controller.dart';
 import '../../../data/models/match_model.dart';
 import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_text_styles.dart';
+import '../../../shared/widgets/shimmer_widgets.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -125,40 +126,45 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildStatsGrid(DashboardController controller) {
-    return Obx(() => GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.5,
-          children: [
-            _buildStatCard(
-              'Profile Views',
-              controller.profileViews.value.toString(),
-              AppColors.profileViews,
-              Icons.visibility,
-            ),
-            _buildStatCard(
-              'Sent Interest',
-              controller.sentInterests.value.toString(),
-              AppColors.sentInterest,
-              Icons.favorite,
-            ),
-            _buildStatCard(
-              'Interest Received',
-              controller.receivedInterests.value.toString(),
-              AppColors.receivedInterest,
-              Icons.favorite_border,
-            ),
-            _buildStatCard(
-              'Profile Accepted',
-              controller.acceptedProfiles.value.toString(),
-              AppColors.acceptedProfile,
-              Icons.check_circle,
-            ),
-          ],
-        ));
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const StatsGridShimmer();
+      }
+      return GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.5,
+        children: [
+          _buildStatCard(
+            'Profile Views',
+            controller.profileViews.value.toString(),
+            AppColors.profileViews,
+            Icons.visibility,
+          ),
+          _buildStatCard(
+            'Sent Interest',
+            controller.sentInterests.value.toString(),
+            AppColors.sentInterest,
+            Icons.favorite,
+          ),
+          _buildStatCard(
+            'Interest Received',
+            controller.receivedInterests.value.toString(),
+            AppColors.receivedInterest,
+            Icons.favorite_border,
+          ),
+          _buildStatCard(
+            'Profile Accepted',
+            controller.acceptedProfiles.value.toString(),
+            AppColors.acceptedProfile,
+            Icons.check_circle,
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildStatCard(
@@ -201,16 +207,22 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildRecommendedMatches(DashboardController controller) {
     return SizedBox(
       height: 200,
-      child: Obx(() => controller.recommendedMatches.isEmpty
-          ? const Center(child: Text('No recommendations yet'))
-          : ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: controller.recommendedMatches.length,
-              itemBuilder: (context, index) {
-                final match = controller.recommendedMatches[index];
-                return _buildMatchCard(match);
-              },
-            )),
+      child: Obx(() {
+        if (controller.isLoading.value) {
+          return const HorizontalMatchesShimmer();
+        }
+        if (controller.recommendedMatches.isEmpty) {
+          return const Center(child: Text('No recommendations yet'));
+        }
+        return ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: controller.recommendedMatches.length,
+          itemBuilder: (context, index) {
+            final match = controller.recommendedMatches[index];
+            return _buildMatchCard(match);
+          },
+        );
+      }),
     );
   }
 

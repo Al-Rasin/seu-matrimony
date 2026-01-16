@@ -4,8 +4,8 @@ import 'profile_detail_controller.dart';
 import '../../../data/models/match_model.dart';
 import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_text_styles.dart';
-import '../../../shared/widgets/loading_widget.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
+import '../../../shared/widgets/shimmer_widgets.dart';
 
 class ProfileDetailScreen extends StatelessWidget {
   const ProfileDetailScreen({super.key});
@@ -17,7 +17,7 @@ class ProfileDetailScreen extends StatelessWidget {
     return Scaffold(
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const LoadingWidget();
+          return const ProfileDetailShimmer();
         }
 
         if (controller.hasError.value || controller.profile.value == null) {

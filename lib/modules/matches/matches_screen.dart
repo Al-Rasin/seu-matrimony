@@ -4,8 +4,8 @@ import 'matches_controller.dart';
 import '../../data/models/match_model.dart';
 import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_text_styles.dart';
-import '../../shared/widgets/loading_widget.dart';
 import '../../shared/widgets/empty_state_widget.dart';
+import '../../shared/widgets/shimmer_widgets.dart';
 
 class MatchesScreen extends StatelessWidget {
   const MatchesScreen({super.key});
@@ -91,7 +91,7 @@ class MatchesScreen extends StatelessWidget {
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value && controller.matches.isEmpty) {
-                return const LoadingWidget();
+                return const MatchesListShimmer();
               }
 
               if (controller.hasError.value && controller.matches.isEmpty) {
