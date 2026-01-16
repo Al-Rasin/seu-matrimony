@@ -22,6 +22,6 @@ class EditProfileController extends GetxController {
   }
 
   void editPhotos() {
-    // Implement photo editing
+    // Implement photo  editding
   }
 }
