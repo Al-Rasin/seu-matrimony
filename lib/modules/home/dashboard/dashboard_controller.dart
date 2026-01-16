@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../data/models/match_model.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../data/repositories/match_repository.dart';
 
@@ -12,7 +13,7 @@ class DashboardController extends GetxController {
   final sentInterests = 0.obs;
   final receivedInterests = 0.obs;
   final acceptedProfiles = 0.obs;
-  final recommendedMatches = <Map<String, dynamic>>[].obs;
+  final recommendedMatches = <MatchModel>[].obs;
   final isLoading = false.obs;
 
   @override
@@ -60,9 +61,8 @@ class DashboardController extends GetxController {
 
   Future<void> _loadRecommendedMatches() async {
     try {
-      final response = await _matchRepository.getRecommendedMatches();
-      recommendedMatches.value =
-          List<Map<String, dynamic>>.from(response['data'] ?? []);
+      final response = await _matchRepository.getRecommendedMatches(perPage: 5);
+      recommendedMatches.value = response.items;
     } catch (e) {
       // Handle error
     }

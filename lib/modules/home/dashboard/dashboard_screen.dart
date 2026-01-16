@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'dashboard_controller.dart';
+import '../../../data/models/match_model.dart';
 import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_text_styles.dart';
 
@@ -199,37 +201,129 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildRecommendedMatches(DashboardController controller) {
     return SizedBox(
-      height: 180,
+      height: 200.h,
       child: Obx(() => controller.recommendedMatches.isEmpty
           ? const Center(child: Text('No recommendations yet'))
           : ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: controller.recommendedMatches.length,
               itemBuilder: (context, index) {
-                return Container(
-                  width: 140,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.grey.shade200,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CircleAvatar(
-                        radius: 40,
-                        child: Icon(Icons.person, size: 40),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Match ${index + 1}',
-                        style: AppTextStyles.labelMedium,
-                      ),
-                    ],
-                  ),
-                );
+                final match = controller.recommendedMatches[index];
+                return _buildMatchCard(match);
               },
             )),
+    );
+  }
+
+  Widget _buildMatchCard(MatchModel match) {
+    return GestureDetector(
+      onTap: () => Get.toNamed('/profile-detail', arguments: {'matchId': match.id}),
+      child: Container(
+        width: 150.w,
+        margin: EdgeInsets.only(right: 12.w),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12.r),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Photo
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+                  color: Colors.grey.shade200,
+                ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+                      child: match.profilePhoto != null
+                          ? Image.memory(
+                              Uri.parse(match.profilePhoto!).data!.contentAsBytes(),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                            )
+                          : _buildPlaceholder(),
+                    ),
+                    // Online indicator
+                    if (match.isOnline)
+                      Positioned(
+                        top: 8.h,
+                        right: 8.w,
+                        child: Container(
+                          width: 10.w,
+                          height: 10.w,
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                        ),
+                      ),
+                    // Verified badge
+                    if (match.isVerified)
+                      Positioned(
+                        top: 8.h,
+                        left: 8.w,
+                        child: Icon(
+                          Icons.verified,
+                          color: AppColors.primary,
+                          size: 18.sp,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            // Info
+            Padding(
+              padding: EdgeInsets.all(10.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    match.fullName,
+                    style: AppTextStyles.labelMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    match.shortInfo,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Center(
+      child: Icon(
+        Icons.person,
+        size: 50.sp,
+        color: Colors.grey.shade400,
+      ),
     );
   }
 }
