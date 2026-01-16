@@ -24,7 +24,7 @@ class ChatListController extends GetxController
       conversations.value =
           List<Map<String, dynamic>>.from(response['data'] ?? []);
     } catch (e) {
-      // Handle error
+      // Handle  error method
     } finally {
       isLoading.value = false;
     }
