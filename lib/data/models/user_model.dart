@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// User model for SEU Matrimony app
 class UserModel {
   final String id;
@@ -124,6 +126,99 @@ class UserModel {
           ? json['profile_completion_percentage']
           : int.tryParse(json['profile_completion_percentage']?.toString() ?? '0') ?? 0,
     );
+  }
+
+  /// Create UserModel from Firestore document data
+  factory UserModel.fromFirestore(Map<String, dynamic> data) {
+    // Helper to convert Firestore Timestamp to DateTime
+    DateTime? timestampToDateTime(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value.toDate();
+      if (value is DateTime) return value;
+      if (value is String) return DateTime.tryParse(value);
+      return null;
+    }
+
+    return UserModel(
+      id: data['id']?.toString() ?? '',
+      username: data['email']?.toString().split('@').first ?? '',
+      fullName: data['fullName']?.toString() ?? '',
+      email: data['email']?.toString(),
+      phone: data['phone']?.toString(),
+      profilePhoto: data['profilePhoto']?.toString(),
+      role: UserRole.fromString(data['role']?.toString()),
+      profileStatus: ProfileStatus.fromString(data['profileStatus']?.toString()),
+      isVerified: data['isVerified'] == true,
+      isOnline: data['isOnline'] == true,
+      lastSeen: timestampToDateTime(data['lastSeen']),
+      createdAt: timestampToDateTime(data['createdAt']) ?? DateTime.now(),
+      updatedAt: timestampToDateTime(data['updatedAt']),
+      gender: data['gender']?.toString(),
+      dateOfBirth: timestampToDateTime(data['dateOfBirth']),
+      age: data['age'] is int ? data['age'] : int.tryParse(data['age']?.toString() ?? ''),
+      department: data['department']?.toString(),
+      studentId: data['studentId']?.toString(),
+      isCurrentlyStudying: data['currentlyStudying'] == true,
+      maritalStatus: data['maritalStatus']?.toString(),
+      hasChildren: data['hasChildren'] == true,
+      numberOfChildren: data['children'] is int ? data['children'] : int.tryParse(data['children']?.toString() ?? ''),
+      height: data['height'] is double
+          ? data['height']
+          : data['height'] is int
+              ? (data['height'] as int).toDouble()
+              : double.tryParse(data['height']?.toString() ?? ''),
+      religion: data['religion']?.toString(),
+      highestEducation: data['highestEducation']?.toString(),
+      educationDetails: data['educationDetails']?.toString(),
+      employmentType: data['employmentStatus']?.toString(),
+      occupation: data['occupation']?.toString(),
+      annualIncome: data['annualIncome']?.toString(),
+      workLocation: data['workLocation']?.toString(),
+      companyName: data['companyName']?.toString(),
+      currentCity: data['currentCity']?.toString(),
+      bio: data['about']?.toString(),
+      photos: data['photos'] != null ? List<String>.from(data['photos']) : null,
+      profileCompletionPercentage: data['profileCompletion'] is int
+          ? data['profileCompletion']
+          : int.tryParse(data['profileCompletion']?.toString() ?? '0') ?? 0,
+    );
+  }
+
+  /// Convert to Firestore document data
+  Map<String, dynamic> toFirestore() {
+    return {
+      'email': email,
+      'phone': phone,
+      'fullName': fullName,
+      'profilePhoto': profilePhoto,
+      'role': role.value,
+      'profileStatus': profileStatus.value,
+      'isVerified': isVerified,
+      'isOnline': isOnline,
+      'lastSeen': lastSeen != null ? Timestamp.fromDate(lastSeen!) : null,
+      'gender': gender,
+      'dateOfBirth': dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
+      'age': age,
+      'department': department,
+      'studentId': studentId,
+      'currentlyStudying': isCurrentlyStudying,
+      'maritalStatus': maritalStatus,
+      'hasChildren': hasChildren,
+      'children': numberOfChildren,
+      'height': height,
+      'religion': religion,
+      'highestEducation': highestEducation,
+      'educationDetails': educationDetails,
+      'employmentStatus': employmentType,
+      'occupation': occupation,
+      'annualIncome': annualIncome,
+      'workLocation': workLocation,
+      'companyName': companyName,
+      'currentCity': currentCity,
+      'about': bio,
+      'photos': photos,
+      'profileCompletion': profileCompletionPercentage,
+    };
   }
 
   Map<String, dynamic> toJson() {

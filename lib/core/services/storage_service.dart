@@ -40,6 +40,26 @@ class StorageService {
 
   set userId(String? value) => write(StorageKeys.userId, value);
 
+  Future<void> setUserId(String value) => write(StorageKeys.userId, value);
+
+  String? get userEmail => read<String>(StorageKeys.userEmail);
+
+  set userEmail(String? value) => write(StorageKeys.userEmail, value);
+
+  Future<void> setUserEmail(String value) => write(StorageKeys.userEmail, value);
+
+  String? get userName => read<String>(StorageKeys.userName);
+
+  set userName(String? value) => write(StorageKeys.userName, value);
+
+  Future<void> setUserName(String value) => write(StorageKeys.userName, value);
+
+  String? get userRole => read<String>(StorageKeys.userRole);
+
+  set userRole(String? value) => write(StorageKeys.userRole, value);
+
+  Future<void> setUserRole(String value) => write(StorageKeys.userRole, value);
+
   bool get isLoggedIn => read<bool>(StorageKeys.isLoggedIn) ?? false;
 
   set isLoggedIn(bool value) => write(StorageKeys.isLoggedIn, value);
@@ -91,6 +111,9 @@ class StorageService {
     await remove(StorageKeys.refreshToken);
     await remove(StorageKeys.firebaseToken);
     await remove(StorageKeys.userId);
+    await remove(StorageKeys.userEmail);
+    await remove(StorageKeys.userName);
+    await remove(StorageKeys.userRole);
     await remove(StorageKeys.isLoggedIn);
     await remove(StorageKeys.userData);
     await remove(StorageKeys.profileCompletion);

@@ -11,6 +11,9 @@ class StorageKeys {
   // User
   static const String userData = 'user_data';
   static const String userDataJson = 'user_data_json';
+  static const String userEmail = 'user_email';
+  static const String userName = 'user_name';
+  static const String userRole = 'user_role';
   static const String profileCompletion = 'profile_completion';
   static const String isProfileComplete = 'is_profile_complete';
 

@@ -11,6 +11,7 @@ class LoginController extends GetxController {
   final passwordController = TextEditingController();
 
   final isLoading = false.obs;
+  final obscurePassword = true.obs;
 
   String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
@@ -32,6 +33,10 @@ class LoginController extends GetxController {
     return null;
   }
 
+  void togglePasswordVisibility() {
+    obscurePassword.value = !obscurePassword.value;
+  }
+
   Future<void> login() async {
     if (!formKey.currentState!.validate()) return;
 
@@ -43,6 +48,9 @@ class LoginController extends GetxController {
         password: passwordController.text,
       );
 
+      // Check user role for redirect
+      final role = await _authRepository.getUserRole();
+
       Get.snackbar(
         'Welcome!',
         'Hello, ${user.fullName}',
@@ -52,7 +60,19 @@ class LoginController extends GetxController {
         duration: const Duration(seconds: 2),
       );
 
-      Get.offAllNamed(AppRoutes.home);
+      // Redirect based on role
+      if (role == 'admin' || role == 'super_admin') {
+        Get.offAllNamed(AppRoutes.adminDashboard);
+      } else {
+        // Check if profile is complete
+        final isComplete = await _authRepository.isProfileComplete();
+        if (isComplete) {
+          Get.offAllNamed(AppRoutes.home);
+        } else {
+          // Redirect to complete registration
+          Get.offAllNamed(AppRoutes.registration);
+        }
+      }
     } catch (e) {
       String errorMessage = e.toString();
       // Clean up the error message

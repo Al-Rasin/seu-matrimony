@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Match model for displaying potential matches
 class MatchModel {
   final String id;
@@ -19,6 +21,7 @@ class MatchModel {
   final bool isOnline;
   final DateTime? lastSeen;
   final InterestStatus? interestStatus;
+  final String? interestId;
   final bool isShortlisted;
 
   const MatchModel({
@@ -41,6 +44,7 @@ class MatchModel {
     this.isOnline = false,
     this.lastSeen,
     this.interestStatus,
+    this.interestId,
     this.isShortlisted = false,
   });
 
@@ -72,7 +76,50 @@ class MatchModel {
           : null,
       interestStatus: InterestStatus.fromString(
           json['interest_status']?.toString() ?? json['interestStatus']?.toString()),
+      interestId: json['interest_id']?.toString() ?? json['interestId']?.toString(),
       isShortlisted: json['is_shortlisted'] == true || json['isShortlisted'] == true,
+    );
+  }
+
+  /// Create MatchModel from Firestore document data
+  factory MatchModel.fromFirestore(Map<String, dynamic> data) {
+    // Helper to convert Firestore Timestamp to DateTime
+    DateTime? timestampToDateTime(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value.toDate();
+      if (value is DateTime) return value;
+      if (value is String) return DateTime.tryParse(value);
+      return null;
+    }
+
+    return MatchModel(
+      id: data['id']?.toString() ?? '',
+      fullName: data['fullName']?.toString() ?? '',
+      profilePhoto: data['profilePhoto']?.toString(),
+      photos: data['photos'] != null ? List<String>.from(data['photos']) : null,
+      age: data['age'] is int ? data['age'] : int.tryParse(data['age']?.toString() ?? ''),
+      gender: data['gender']?.toString(),
+      height: data['height'] is double
+          ? data['height']
+          : data['height'] is int
+              ? (data['height'] as int).toDouble()
+              : double.tryParse(data['height']?.toString() ?? ''),
+      religion: data['religion']?.toString(),
+      maritalStatus: data['maritalStatus']?.toString(),
+      department: data['department']?.toString(),
+      highestEducation: data['highestEducation']?.toString(),
+      occupation: data['occupation']?.toString(),
+      currentCity: data['currentCity']?.toString(),
+      bio: data['about']?.toString() ?? data['bio']?.toString(),
+      profileCompletionPercentage: data['profileCompletion'] is int
+          ? data['profileCompletion']
+          : int.tryParse(data['profileCompletion']?.toString() ?? '0') ?? 0,
+      isVerified: data['isVerified'] == true,
+      isOnline: data['isOnline'] == true,
+      lastSeen: timestampToDateTime(data['lastSeen']),
+      interestStatus: InterestStatus.none,
+      interestId: null,
+      isShortlisted: false,
     );
   }
 
@@ -97,6 +144,7 @@ class MatchModel {
       'is_online': isOnline,
       'last_seen': lastSeen?.toIso8601String(),
       'interest_status': interestStatus?.value,
+      'interest_id': interestId,
       'is_shortlisted': isShortlisted,
     };
   }
@@ -149,6 +197,7 @@ class MatchModel {
     bool? isOnline,
     DateTime? lastSeen,
     InterestStatus? interestStatus,
+    String? interestId,
     bool? isShortlisted,
   }) {
     return MatchModel(
@@ -171,6 +220,7 @@ class MatchModel {
       isOnline: isOnline ?? this.isOnline,
       lastSeen: lastSeen ?? this.lastSeen,
       interestStatus: interestStatus ?? this.interestStatus,
+      interestId: interestId ?? this.interestId,
       isShortlisted: isShortlisted ?? this.isShortlisted,
     );
   }

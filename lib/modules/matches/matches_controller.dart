@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../data/models/match_model.dart';
+import '../../data/models/paginated_response.dart';
 import '../../data/repositories/match_repository.dart';
-import '../../core/network/api_response.dart';
 
 /// Filter tab options
 enum MatchTab { all, matchPreference, saved, sentInterests, receivedInterests }

@@ -1,21 +1,34 @@
 import 'package:get/get.dart';
 import '../../core/services/mock_data_service.dart';
-import '../../core/network/api_response.dart';
+import '../../core/services/firestore_service.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/constants/firebase_constants.dart';
 import '../models/match_model.dart';
 import '../models/filter_model.dart';
-import '../providers/match_provider.dart';
+import '../models/paginated_response.dart';
 
 export '../models/filter_model.dart';
 
 /// Repository for match-related operations
-/// Handles both mock data and real API calls
+/// Handles both mock data and Firestore
 class MatchRepository {
-  MatchProvider? _matchProvider;
+  FirestoreService? _firestoreService;
+  AuthService? _authService;
 
-  MatchProvider get matchProvider {
-    _matchProvider ??= Get.find<MatchProvider>();
-    return _matchProvider!;
+  FirestoreService get firestoreService {
+    _firestoreService ??= Get.find<FirestoreService>();
+    return _firestoreService!;
   }
+
+  AuthService get authService {
+    _authService ??= Get.find<AuthService>();
+    return _authService!;
+  }
+
+  /// Check if using Firebase or mock data
+  bool get useFirebase => !MockDataService.useMockData;
+
+  String? get currentUserId => authService.currentUserId;
 
   // ==================== MATCHES ====================
 
@@ -25,14 +38,81 @@ class MatchRepository {
     int perPage = 10,
     MatchFilter? filter,
   }) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       return _getMockMatches(page: page, perPage: perPage, filter: filter);
     }
 
-    return matchProvider.getMatches(
-      page: page,
-      perPage: perPage,
-      filters: filter?.toQueryParams(),
+    // Build Firestore query
+    final filters = <QueryFilter>[];
+
+    // Exclude current user
+    if (currentUserId != null) {
+      filters.add(QueryFilter(
+        field: 'id',
+        operator: QueryOperator.isNotEqualTo,
+        value: currentUserId,
+      ));
+    }
+
+    // Apply filters
+    if (filter != null) {
+      if (filter.religion != null && filter.religion!.isNotEmpty) {
+        filters.add(QueryFilter(
+          field: FirebaseConstants.fieldReligion,
+          operator: QueryOperator.isEqualTo,
+          value: filter.religion,
+        ));
+      }
+      if (filter.maritalStatus != null && filter.maritalStatus!.isNotEmpty) {
+        filters.add(QueryFilter(
+          field: FirebaseConstants.fieldMaritalStatus,
+          operator: QueryOperator.isEqualTo,
+          value: filter.maritalStatus,
+        ));
+      }
+      if (filter.city != null && filter.city!.isNotEmpty) {
+        filters.add(QueryFilter(
+          field: FirebaseConstants.fieldCurrentCity,
+          operator: QueryOperator.isEqualTo,
+          value: filter.city,
+        ));
+      }
+      if (filter.verifiedOnly == true) {
+        filters.add(QueryFilter(
+          field: FirebaseConstants.fieldIsVerified,
+          operator: QueryOperator.isEqualTo,
+          value: true,
+        ));
+      }
+    }
+
+    final results = await firestoreService.query(
+      collection: FirebaseConstants.usersCollection,
+      filters: filters,
+      limit: perPage,
+      orderBy: FirebaseConstants.fieldCreatedAt,
+      descending: true,
+    );
+
+    // Filter by age and height in memory (Firestore limitations)
+    var matches = results.map((data) => MatchModel.fromFirestore(data)).toList();
+
+    if (filter != null) {
+      matches = _applyLocalFilters(matches, filter);
+    }
+
+    // Get shortlist and interest status for each match
+    matches = await _enrichMatchesWithStatus(matches);
+
+    return PaginatedResponse(
+      items: matches,
+      pagination: PaginationMeta(
+        currentPage: page,
+        lastPage: (matches.length / perPage).ceil().clamp(1, 100),
+        perPage: perPage,
+        total: matches.length,
+        hasMorePages: matches.length >= perPage,
+      ),
     );
   }
 
@@ -41,11 +121,43 @@ class MatchRepository {
     int page = 1,
     int perPage = 10,
   }) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       return _getMockMatches(page: page, perPage: perPage, recommended: true);
     }
 
-    return matchProvider.getRecommendedMatches(page: page, perPage: perPage);
+    // For recommendations, we could implement a matching algorithm
+    // For now, just return verified users
+    final results = await firestoreService.query(
+      collection: FirebaseConstants.usersCollection,
+      filters: [
+        QueryFilter(
+          field: FirebaseConstants.fieldIsVerified,
+          operator: QueryOperator.isEqualTo,
+          value: true,
+        ),
+      ],
+      limit: perPage,
+      orderBy: FirebaseConstants.fieldCreatedAt,
+      descending: true,
+    );
+
+    var matches = results
+        .where((data) => data['id'] != currentUserId)
+        .map((data) => MatchModel.fromFirestore(data))
+        .toList();
+
+    matches = await _enrichMatchesWithStatus(matches);
+
+    return PaginatedResponse(
+      items: matches,
+      pagination: PaginationMeta(
+        currentPage: page,
+        lastPage: 1,
+        perPage: perPage,
+        total: matches.length,
+        hasMorePages: matches.length >= perPage,
+      ),
+    );
   }
 
   /// Get newly joined users
@@ -53,11 +165,34 @@ class MatchRepository {
     int page = 1,
     int perPage = 10,
   }) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       return _getMockMatches(page: page, perPage: perPage, newlyJoined: true);
     }
 
-    return matchProvider.getNewlyJoined(page: page, perPage: perPage);
+    final results = await firestoreService.query(
+      collection: FirebaseConstants.usersCollection,
+      limit: perPage,
+      orderBy: FirebaseConstants.fieldCreatedAt,
+      descending: true,
+    );
+
+    var matches = results
+        .where((data) => data['id'] != currentUserId)
+        .map((data) => MatchModel.fromFirestore(data))
+        .toList();
+
+    matches = await _enrichMatchesWithStatus(matches);
+
+    return PaginatedResponse(
+      items: matches,
+      pagination: PaginationMeta(
+        currentPage: page,
+        lastPage: 1,
+        perPage: perPage,
+        total: matches.length,
+        hasMorePages: matches.length >= perPage,
+      ),
+    );
   }
 
   /// Search matches
@@ -67,7 +202,7 @@ class MatchRepository {
     int perPage = 10,
     MatchFilter? filter,
   }) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       return _getMockMatches(
         page: page,
         perPage: perPage,
@@ -76,33 +211,74 @@ class MatchRepository {
       );
     }
 
-    return matchProvider.searchMatches(
-      query: query,
-      page: page,
-      perPage: perPage,
-      filters: filter?.toQueryParams(),
+    // Firestore doesn't support full-text search natively
+    // For production, consider using Algolia or similar
+    // For now, fetch and filter in memory
+    final results = await firestoreService.getAll(
+      collection: FirebaseConstants.usersCollection,
+      limit: 100,
+    );
+
+    final searchLower = query.toLowerCase();
+    var matches = results
+        .where((data) {
+          final name = (data['fullName'] as String? ?? '').toLowerCase();
+          final city = (data['currentCity'] as String? ?? '').toLowerCase();
+          final occupation = (data['occupation'] as String? ?? '').toLowerCase();
+          final department = (data['department'] as String? ?? '').toLowerCase();
+          return name.contains(searchLower) ||
+              city.contains(searchLower) ||
+              occupation.contains(searchLower) ||
+              department.contains(searchLower);
+        })
+        .where((data) => data['id'] != currentUserId)
+        .map((data) => MatchModel.fromFirestore(data))
+        .toList();
+
+    if (filter != null) {
+      matches = _applyLocalFilters(matches, filter);
+    }
+
+    matches = await _enrichMatchesWithStatus(matches);
+
+    return PaginatedResponse(
+      items: matches.take(perPage).toList(),
+      pagination: PaginationMeta(
+        currentPage: page,
+        lastPage: (matches.length / perPage).ceil().clamp(1, 100),
+        perPage: perPage,
+        total: matches.length,
+        hasMorePages: matches.length > perPage,
+      ),
     );
   }
 
   /// Get match profile by ID
   Future<MatchModel?> getMatchProfile(String matchId) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       await Future.delayed(const Duration(milliseconds: 500));
       final match = _mockMatches.firstWhereOrNull((m) => m.id == matchId);
       return match;
     }
 
-    final response = await matchProvider.getMatchProfile(matchId);
-    return response.data;
+    final data = await firestoreService.getById(
+      collection: FirebaseConstants.usersCollection,
+      documentId: matchId,
+    );
+
+    if (data == null) return null;
+
+    var match = MatchModel.fromFirestore(data);
+    final enriched = await _enrichMatchesWithStatus([match]);
+    return enriched.isNotEmpty ? enriched.first : match;
   }
 
   // ==================== INTERESTS ====================
 
   /// Send interest to a match
   Future<bool> sendInterest(String matchId) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       await Future.delayed(const Duration(milliseconds: 500));
-      // Update mock data
       final index = _mockMatches.indexWhere((m) => m.id == matchId);
       if (index != -1) {
         _mockMatches[index] = _mockMatches[index].copyWith(
@@ -112,30 +288,54 @@ class MatchRepository {
       return true;
     }
 
-    final response = await matchProvider.sendInterest(matchId);
-    return response.success;
+    if (currentUserId == null) return false;
+
+    await firestoreService.create(
+      collection: FirebaseConstants.interestsCollection,
+      data: {
+        FirebaseConstants.fieldFromUserId: currentUserId,
+        FirebaseConstants.fieldToUserId: matchId,
+        FirebaseConstants.fieldStatus: FirebaseConstants.statusPending,
+      },
+    );
+
+    return true;
   }
 
   /// Accept interest
   Future<bool> acceptInterest(String interestId) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       await Future.delayed(const Duration(milliseconds: 500));
       return true;
     }
 
-    final response = await matchProvider.acceptInterest(interestId);
-    return response.success;
+    await firestoreService.update(
+      collection: FirebaseConstants.interestsCollection,
+      documentId: interestId,
+      data: {
+        FirebaseConstants.fieldStatus: FirebaseConstants.statusAccepted,
+      },
+    );
+
+    return true;
   }
 
   /// Reject interest
   Future<bool> rejectInterest(String interestId) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       await Future.delayed(const Duration(milliseconds: 500));
       return true;
     }
 
-    final response = await matchProvider.rejectInterest(interestId);
-    return response.success;
+    await firestoreService.update(
+      collection: FirebaseConstants.interestsCollection,
+      documentId: interestId,
+      data: {
+        FirebaseConstants.fieldStatus: FirebaseConstants.statusRejected,
+      },
+    );
+
+    return true;
   }
 
   /// Get sent interests
@@ -143,7 +343,7 @@ class MatchRepository {
     int page = 1,
     int perPage = 10,
   }) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       return _getMockMatches(
         page: page,
         perPage: perPage,
@@ -151,7 +351,45 @@ class MatchRepository {
       );
     }
 
-    return matchProvider.getSentInterests(page: page, perPage: perPage);
+    if (currentUserId == null) {
+      return PaginatedResponse(items: [], pagination: PaginationMeta.empty());
+    }
+
+    final interests = await firestoreService.getWhere(
+      collection: FirebaseConstants.interestsCollection,
+      field: FirebaseConstants.fieldFromUserId,
+      isEqualTo: currentUserId,
+      limit: perPage,
+    );
+
+    final userIds = interests
+        .map((i) => i[FirebaseConstants.fieldToUserId] as String?)
+        .whereType<String>()
+        .toList();
+
+    final matches = <MatchModel>[];
+    for (final userId in userIds) {
+      final userData = await firestoreService.getById(
+        collection: FirebaseConstants.usersCollection,
+        documentId: userId,
+      );
+      if (userData != null) {
+        matches.add(MatchModel.fromFirestore(userData).copyWith(
+          interestStatus: InterestStatus.sent,
+        ));
+      }
+    }
+
+    return PaginatedResponse(
+      items: matches,
+      pagination: PaginationMeta(
+        currentPage: page,
+        lastPage: 1,
+        perPage: perPage,
+        total: matches.length,
+        hasMorePages: false,
+      ),
+    );
   }
 
   /// Get received interests
@@ -159,7 +397,7 @@ class MatchRepository {
     int page = 1,
     int perPage = 10,
   }) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       return _getMockMatches(
         page: page,
         perPage: perPage,
@@ -167,7 +405,54 @@ class MatchRepository {
       );
     }
 
-    return matchProvider.getReceivedInterests(page: page, perPage: perPage);
+    if (currentUserId == null) {
+      return PaginatedResponse(items: [], pagination: PaginationMeta.empty());
+    }
+
+    final interests = await firestoreService.query(
+      collection: FirebaseConstants.interestsCollection,
+      filters: [
+        QueryFilter(
+          field: FirebaseConstants.fieldToUserId,
+          operator: QueryOperator.isEqualTo,
+          value: currentUserId,
+        ),
+        QueryFilter(
+          field: FirebaseConstants.fieldStatus,
+          operator: QueryOperator.isEqualTo,
+          value: FirebaseConstants.statusPending,
+        ),
+      ],
+      limit: perPage,
+    );
+
+    final matches = <MatchModel>[];
+    for (final interest in interests) {
+      final userId = interest[FirebaseConstants.fieldFromUserId] as String?;
+      if (userId != null) {
+        final userData = await firestoreService.getById(
+          collection: FirebaseConstants.usersCollection,
+          documentId: userId,
+        );
+        if (userData != null) {
+          matches.add(MatchModel.fromFirestore(userData).copyWith(
+            interestStatus: InterestStatus.received,
+            interestId: interest['id'] as String?,
+          ));
+        }
+      }
+    }
+
+    return PaginatedResponse(
+      items: matches,
+      pagination: PaginationMeta(
+        currentPage: page,
+        lastPage: 1,
+        perPage: perPage,
+        total: matches.length,
+        hasMorePages: false,
+      ),
+    );
   }
 
   /// Get accepted connections
@@ -175,7 +460,7 @@ class MatchRepository {
     int page = 1,
     int perPage = 10,
   }) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       return _getMockMatches(
         page: page,
         perPage: perPage,
@@ -183,14 +468,84 @@ class MatchRepository {
       );
     }
 
-    return matchProvider.getAcceptedInterests(page: page, perPage: perPage);
+    if (currentUserId == null) {
+      return PaginatedResponse(items: [], pagination: PaginationMeta.empty());
+    }
+
+    // Get interests where current user sent and was accepted
+    final sentAccepted = await firestoreService.query(
+      collection: FirebaseConstants.interestsCollection,
+      filters: [
+        QueryFilter(
+          field: FirebaseConstants.fieldFromUserId,
+          operator: QueryOperator.isEqualTo,
+          value: currentUserId,
+        ),
+        QueryFilter(
+          field: FirebaseConstants.fieldStatus,
+          operator: QueryOperator.isEqualTo,
+          value: FirebaseConstants.statusAccepted,
+        ),
+      ],
+    );
+
+    // Get interests where current user received and accepted
+    final receivedAccepted = await firestoreService.query(
+      collection: FirebaseConstants.interestsCollection,
+      filters: [
+        QueryFilter(
+          field: FirebaseConstants.fieldToUserId,
+          operator: QueryOperator.isEqualTo,
+          value: currentUserId,
+        ),
+        QueryFilter(
+          field: FirebaseConstants.fieldStatus,
+          operator: QueryOperator.isEqualTo,
+          value: FirebaseConstants.statusAccepted,
+        ),
+      ],
+    );
+
+    final userIds = <String>{};
+    for (final interest in sentAccepted) {
+      final id = interest[FirebaseConstants.fieldToUserId] as String?;
+      if (id != null) userIds.add(id);
+    }
+    for (final interest in receivedAccepted) {
+      final id = interest[FirebaseConstants.fieldFromUserId] as String?;
+      if (id != null) userIds.add(id);
+    }
+
+    final matches = <MatchModel>[];
+    for (final userId in userIds.take(perPage)) {
+      final userData = await firestoreService.getById(
+        collection: FirebaseConstants.usersCollection,
+        documentId: userId,
+      );
+      if (userData != null) {
+        matches.add(MatchModel.fromFirestore(userData).copyWith(
+          interestStatus: InterestStatus.accepted,
+        ));
+      }
+    }
+
+    return PaginatedResponse(
+      items: matches,
+      pagination: PaginationMeta(
+        currentPage: page,
+        lastPage: 1,
+        perPage: perPage,
+        total: matches.length,
+        hasMorePages: false,
+      ),
+    );
   }
 
   // ==================== SHORTLIST ====================
 
   /// Add to shortlist
   Future<bool> addToShortlist(String matchId) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       await Future.delayed(const Duration(milliseconds: 500));
       final index = _mockMatches.indexWhere((m) => m.id == matchId);
       if (index != -1) {
@@ -199,13 +554,22 @@ class MatchRepository {
       return true;
     }
 
-    final response = await matchProvider.addToShortlist(matchId);
-    return response.success;
+    if (currentUserId == null) return false;
+
+    await firestoreService.create(
+      collection: FirebaseConstants.shortlistsCollection,
+      data: {
+        FirebaseConstants.fieldUserId: currentUserId,
+        FirebaseConstants.fieldSavedUserId: matchId,
+      },
+    );
+
+    return true;
   }
 
   /// Remove from shortlist
   Future<bool> removeFromShortlist(String matchId) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       await Future.delayed(const Duration(milliseconds: 500));
       final index = _mockMatches.indexWhere((m) => m.id == matchId);
       if (index != -1) {
@@ -214,8 +578,33 @@ class MatchRepository {
       return true;
     }
 
-    final response = await matchProvider.removeFromShortlist(matchId);
-    return response.success;
+    if (currentUserId == null) return false;
+
+    // Find and delete the shortlist entry
+    final shortlists = await firestoreService.query(
+      collection: FirebaseConstants.shortlistsCollection,
+      filters: [
+        QueryFilter(
+          field: FirebaseConstants.fieldUserId,
+          operator: QueryOperator.isEqualTo,
+          value: currentUserId,
+        ),
+        QueryFilter(
+          field: FirebaseConstants.fieldSavedUserId,
+          operator: QueryOperator.isEqualTo,
+          value: matchId,
+        ),
+      ],
+    );
+
+    for (final shortlist in shortlists) {
+      await firestoreService.delete(
+        collection: FirebaseConstants.shortlistsCollection,
+        documentId: shortlist['id'] as String,
+      );
+    }
+
+    return true;
   }
 
   /// Get shortlisted matches
@@ -223,23 +612,68 @@ class MatchRepository {
     int page = 1,
     int perPage = 10,
   }) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       return _getMockMatches(page: page, perPage: perPage, shortlistedOnly: true);
     }
 
-    return matchProvider.getShortlistedMatches(page: page, perPage: perPage);
+    if (currentUserId == null) {
+      return PaginatedResponse(items: [], pagination: PaginationMeta.empty());
+    }
+
+    final shortlists = await firestoreService.getWhere(
+      collection: FirebaseConstants.shortlistsCollection,
+      field: FirebaseConstants.fieldUserId,
+      isEqualTo: currentUserId,
+      limit: perPage,
+    );
+
+    final matches = <MatchModel>[];
+    for (final shortlist in shortlists) {
+      final userId = shortlist[FirebaseConstants.fieldSavedUserId] as String?;
+      if (userId != null) {
+        final userData = await firestoreService.getById(
+          collection: FirebaseConstants.usersCollection,
+          documentId: userId,
+        );
+        if (userData != null) {
+          matches.add(MatchModel.fromFirestore(userData).copyWith(
+            isShortlisted: true,
+          ));
+        }
+      }
+    }
+
+    return PaginatedResponse(
+      items: matches,
+      pagination: PaginationMeta(
+        currentPage: page,
+        lastPage: 1,
+        perPage: perPage,
+        total: matches.length,
+        hasMorePages: false,
+      ),
+    );
   }
 
   // ==================== PROFILE VIEWS ====================
 
   /// Record profile view
   Future<void> recordProfileView(String matchId) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       await Future.delayed(const Duration(milliseconds: 200));
       return;
     }
 
-    await matchProvider.recordProfileView(matchId);
+    if (currentUserId == null || currentUserId == matchId) return;
+
+    await firestoreService.create(
+      collection: FirebaseConstants.profileViewsCollection,
+      data: {
+        FirebaseConstants.fieldViewerId: currentUserId,
+        FirebaseConstants.fieldViewedUserId: matchId,
+        FirebaseConstants.fieldViewedAt: firestoreService.serverTimestamp,
+      },
+    );
   }
 
   /// Get who viewed me
@@ -247,35 +681,107 @@ class MatchRepository {
     int page = 1,
     int perPage = 10,
   }) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       return _getMockMatches(page: page, perPage: perPage);
     }
 
-    return matchProvider.getWhoViewedMe(page: page, perPage: perPage);
+    if (currentUserId == null) {
+      return PaginatedResponse(items: [], pagination: PaginationMeta.empty());
+    }
+
+    final views = await firestoreService.getWhere(
+      collection: FirebaseConstants.profileViewsCollection,
+      field: FirebaseConstants.fieldViewedUserId,
+      isEqualTo: currentUserId,
+      limit: perPage,
+      orderBy: FirebaseConstants.fieldViewedAt,
+      descending: true,
+    );
+
+    final viewerIds = views
+        .map((v) => v[FirebaseConstants.fieldViewerId] as String?)
+        .whereType<String>()
+        .toSet()
+        .toList();
+
+    final matches = <MatchModel>[];
+    for (final userId in viewerIds) {
+      final userData = await firestoreService.getById(
+        collection: FirebaseConstants.usersCollection,
+        documentId: userId,
+      );
+      if (userData != null) {
+        matches.add(MatchModel.fromFirestore(userData));
+      }
+    }
+
+    return PaginatedResponse(
+      items: matches,
+      pagination: PaginationMeta(
+        currentPage: page,
+        lastPage: 1,
+        perPage: perPage,
+        total: matches.length,
+        hasMorePages: false,
+      ),
+    );
   }
 
   // ==================== BLOCK & REPORT ====================
 
   /// Block user
   Future<bool> blockUser(String userId) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       await Future.delayed(const Duration(milliseconds: 500));
       return true;
     }
 
-    final response = await matchProvider.blockUser(userId);
-    return response.success;
+    if (currentUserId == null) return false;
+
+    await firestoreService.create(
+      collection: FirebaseConstants.blocksCollection,
+      data: {
+        FirebaseConstants.fieldBlockerId: currentUserId,
+        FirebaseConstants.fieldBlockedUserId: userId,
+      },
+    );
+
+    return true;
   }
 
   /// Unblock user
   Future<bool> unblockUser(String userId) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       await Future.delayed(const Duration(milliseconds: 500));
       return true;
     }
 
-    final response = await matchProvider.unblockUser(userId);
-    return response.success;
+    if (currentUserId == null) return false;
+
+    final blocks = await firestoreService.query(
+      collection: FirebaseConstants.blocksCollection,
+      filters: [
+        QueryFilter(
+          field: FirebaseConstants.fieldBlockerId,
+          operator: QueryOperator.isEqualTo,
+          value: currentUserId,
+        ),
+        QueryFilter(
+          field: FirebaseConstants.fieldBlockedUserId,
+          operator: QueryOperator.isEqualTo,
+          value: userId,
+        ),
+      ],
+    );
+
+    for (final block in blocks) {
+      await firestoreService.delete(
+        collection: FirebaseConstants.blocksCollection,
+        documentId: block['id'] as String,
+      );
+    }
+
+    return true;
   }
 
   /// Report user
@@ -284,17 +790,123 @@ class MatchRepository {
     required String reason,
     String? description,
   }) async {
-    if (MockDataService.useMockData) {
+    if (!useFirebase) {
       await Future.delayed(const Duration(milliseconds: 500));
       return true;
     }
 
-    final response = await matchProvider.reportUser(
-      userId: userId,
-      reason: reason,
-      description: description,
+    if (currentUserId == null) return false;
+
+    await firestoreService.create(
+      collection: FirebaseConstants.reportsCollection,
+      data: {
+        FirebaseConstants.fieldReporterId: currentUserId,
+        FirebaseConstants.fieldReportedUserId: userId,
+        FirebaseConstants.fieldReason: reason,
+        FirebaseConstants.fieldDescription: description,
+        FirebaseConstants.fieldStatus: FirebaseConstants.reportStatusPending,
+      },
     );
-    return response.success;
+
+    return true;
+  }
+
+  // ==================== HELPER METHODS ====================
+
+  /// Enrich matches with shortlist and interest status
+  Future<List<MatchModel>> _enrichMatchesWithStatus(List<MatchModel> matches) async {
+    if (currentUserId == null || matches.isEmpty) return matches;
+
+    // Get shortlisted users
+    final shortlists = await firestoreService.getWhere(
+      collection: FirebaseConstants.shortlistsCollection,
+      field: FirebaseConstants.fieldUserId,
+      isEqualTo: currentUserId,
+    );
+    final shortlistedIds = shortlists
+        .map((s) => s[FirebaseConstants.fieldSavedUserId] as String?)
+        .whereType<String>()
+        .toSet();
+
+    // Get sent interests
+    final sentInterests = await firestoreService.getWhere(
+      collection: FirebaseConstants.interestsCollection,
+      field: FirebaseConstants.fieldFromUserId,
+      isEqualTo: currentUserId,
+    );
+    final sentInterestMap = <String, Map<String, dynamic>>{};
+    for (final interest in sentInterests) {
+      final toId = interest[FirebaseConstants.fieldToUserId] as String?;
+      if (toId != null) sentInterestMap[toId] = interest;
+    }
+
+    // Get received interests
+    final receivedInterests = await firestoreService.getWhere(
+      collection: FirebaseConstants.interestsCollection,
+      field: FirebaseConstants.fieldToUserId,
+      isEqualTo: currentUserId,
+    );
+    final receivedInterestMap = <String, Map<String, dynamic>>{};
+    for (final interest in receivedInterests) {
+      final fromId = interest[FirebaseConstants.fieldFromUserId] as String?;
+      if (fromId != null) receivedInterestMap[fromId] = interest;
+    }
+
+    return matches.map((match) {
+      InterestStatus status = InterestStatus.none;
+      String? interestId;
+
+      if (sentInterestMap.containsKey(match.id)) {
+        final interest = sentInterestMap[match.id]!;
+        final statusStr = interest[FirebaseConstants.fieldStatus] as String?;
+        if (statusStr == FirebaseConstants.statusAccepted) {
+          status = InterestStatus.accepted;
+        } else if (statusStr == FirebaseConstants.statusRejected) {
+          status = InterestStatus.rejected;
+        } else {
+          status = InterestStatus.sent;
+        }
+        interestId = interest['id'] as String?;
+      } else if (receivedInterestMap.containsKey(match.id)) {
+        final interest = receivedInterestMap[match.id]!;
+        final statusStr = interest[FirebaseConstants.fieldStatus] as String?;
+        if (statusStr == FirebaseConstants.statusAccepted) {
+          status = InterestStatus.accepted;
+        } else if (statusStr == FirebaseConstants.statusRejected) {
+          status = InterestStatus.rejected;
+        } else {
+          status = InterestStatus.received;
+        }
+        interestId = interest['id'] as String?;
+      }
+
+      return match.copyWith(
+        isShortlisted: shortlistedIds.contains(match.id),
+        interestStatus: status,
+        interestId: interestId,
+      );
+    }).toList();
+  }
+
+  /// Apply filters that can't be done in Firestore query
+  List<MatchModel> _applyLocalFilters(List<MatchModel> matches, MatchFilter filter) {
+    return matches.where((m) {
+      // Age filter
+      if (filter.minAge != null && (m.age ?? 0) < filter.minAge!) return false;
+      if (filter.maxAge != null && (m.age ?? 100) > filter.maxAge!) return false;
+
+      // Height filter
+      if (filter.minHeight != null && (m.height ?? 0) < filter.minHeight!) return false;
+      if (filter.maxHeight != null && (m.height ?? 300) > filter.maxHeight!) return false;
+
+      // With photo only
+      if (filter.withPhotoOnly == true && m.profilePhoto == null) return false;
+
+      // Online only
+      if (filter.onlineOnly == true && !m.isOnline) return false;
+
+      return true;
+    }).toList();
   }
 
   // ==================== MOCK DATA ====================
@@ -506,7 +1118,7 @@ class MatchRepository {
 
     // Apply custom filters
     if (filter != null) {
-      matches = _applyFilters(matches, filter);
+      matches = _applyLocalFilters(matches, filter);
     }
 
     // Calculate pagination
@@ -530,48 +1142,5 @@ class MatchRepository {
         hasMorePages: page < totalPages,
       ),
     );
-  }
-
-  /// Apply filters to matches list
-  List<MatchModel> _applyFilters(List<MatchModel> matches, MatchFilter filter) {
-    return matches.where((m) {
-      // Age filter
-      if (filter.minAge != null && (m.age ?? 0) < filter.minAge!) return false;
-      if (filter.maxAge != null && (m.age ?? 100) > filter.maxAge!) return false;
-
-      // Height filter
-      if (filter.minHeight != null && (m.height ?? 0) < filter.minHeight!) return false;
-      if (filter.maxHeight != null && (m.height ?? 300) > filter.maxHeight!) return false;
-
-      // Religion filter
-      if (filter.religion != null &&
-          filter.religion!.isNotEmpty &&
-          m.religion?.toLowerCase() != filter.religion!.toLowerCase()) {
-        return false;
-      }
-
-      // Marital status filter
-      if (filter.maritalStatus != null &&
-          filter.maritalStatus!.isNotEmpty &&
-          m.maritalStatus?.toLowerCase() != filter.maritalStatus!.toLowerCase()) {
-        return false;
-      }
-
-      // Education filter
-      if (filter.education != null &&
-          filter.education!.isNotEmpty &&
-          m.highestEducation?.toLowerCase() != filter.education!.toLowerCase()) {
-        return false;
-      }
-
-      // City filter
-      if (filter.city != null &&
-          filter.city!.isNotEmpty &&
-          m.currentCity?.toLowerCase() != filter.city!.toLowerCase()) {
-        return false;
-      }
-
-      return true;
-    }).toList();
   }
 }
