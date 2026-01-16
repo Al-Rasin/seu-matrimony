@@ -25,11 +25,7 @@ class DashboardController extends GetxController {
   Future<void> loadDashboardData() async {
     try {
       isLoading.value = true;
-      await Future.wait([
-        _loadUserData(),
-        _loadStats(),
-        _loadRecommendedMatches(),
-      ]);
+      await Future.wait([_loadUserData(), _loadStats(), _loadRecommendedMatches()]);
     } catch (e) {
       // Handle error
     } finally {

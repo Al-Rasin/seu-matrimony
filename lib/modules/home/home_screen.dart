@@ -15,19 +15,13 @@ class HomeScreen extends StatelessWidget {
     final controller = Get.put(HomeController());
 
     return Scaffold(
-      body: Obx(() => IndexedStack(
-            index: controller.currentIndex.value,
-            children: const [
-              DashboardScreen(),
-              MatchesScreen(),
-              ChatListScreen(),
-              MyProfileScreen(),
-            ],
-          )),
-      bottomNavigationBar: Obx(() => BottomNavBar(
-            currentIndex: controller.currentIndex.value,
-            onTap: controller.changeTab,
-          )),
+      body: Obx(
+        () => IndexedStack(
+          index: controller.currentIndex.value,
+          children: const [DashboardScreen(), MatchesScreen(), ChatListScreen(), MyProfileScreen()],
+        ),
+      ),
+      bottomNavigationBar: Obx(() => BottomNavBar(currentIndex: controller.currentIndex.value, onTap: controller.changeTab)),
     );
   }
 }

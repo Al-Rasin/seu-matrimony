@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'dashboard_controller.dart';
 import '../../../data/models/match_model.dart';
@@ -201,7 +200,7 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildRecommendedMatches(DashboardController controller) {
     return SizedBox(
-      height: 200.h,
+      height: 200,
       child: Obx(() => controller.recommendedMatches.isEmpty
           ? const Center(child: Text('No recommendations yet'))
           : ListView.builder(
@@ -219,10 +218,10 @@ class DashboardScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => Get.toNamed('/profile-detail', arguments: {'matchId': match.id}),
       child: Container(
-        width: 150.w,
-        margin: EdgeInsets.only(right: 12.w),
+        width: 150,
+        margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(12),
           color: Colors.white,
           boxShadow: [
             BoxShadow(
@@ -239,14 +238,14 @@ class DashboardScreen extends StatelessWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                   color: Colors.grey.shade200,
                 ),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                       child: match.profilePhoto != null
                           ? Image.memory(
                               Uri.parse(match.profilePhoto!).data!.contentAsBytes(),
@@ -258,11 +257,11 @@ class DashboardScreen extends StatelessWidget {
                     // Online indicator
                     if (match.isOnline)
                       Positioned(
-                        top: 8.h,
-                        right: 8.w,
+                        top: 8,
+                        right: 8,
                         child: Container(
-                          width: 10.w,
-                          height: 10.w,
+                          width: 10,
+                          height: 10,
                           decoration: BoxDecoration(
                             color: Colors.green,
                             shape: BoxShape.circle,
@@ -272,13 +271,13 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     // Verified badge
                     if (match.isVerified)
-                      Positioned(
-                        top: 8.h,
-                        left: 8.w,
+                      const Positioned(
+                        top: 8,
+                        left: 8,
                         child: Icon(
                           Icons.verified,
                           color: AppColors.primary,
-                          size: 18.sp,
+                          size: 18,
                         ),
                       ),
                   ],
@@ -287,7 +286,7 @@ class DashboardScreen extends StatelessWidget {
             ),
             // Info
             Padding(
-              padding: EdgeInsets.all(10.w),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -299,7 +298,7 @@ class DashboardScreen extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 2.h),
+                  const SizedBox(height: 2),
                   Text(
                     match.shortInfo,
                     style: AppTextStyles.caption.copyWith(
@@ -321,7 +320,7 @@ class DashboardScreen extends StatelessWidget {
     return Center(
       child: Icon(
         Icons.person,
-        size: 50.sp,
+        size: 50,
         color: Colors.grey.shade400,
       ),
     );

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'matches_controller.dart';
 import '../../data/models/match_model.dart';
@@ -50,7 +49,7 @@ class MatchesScreen extends StatelessWidget {
         children: [
           // Search bar
           Padding(
-            padding: EdgeInsets.all(16.w),
+            padding: const EdgeInsets.all(16),
             child: TextField(
               controller: controller.searchController,
               decoration: InputDecoration(
@@ -65,10 +64,10 @@ class MatchesScreen extends StatelessWidget {
                 filled: true,
                 fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
               onChanged: controller.onSearchChanged,
             ),
@@ -76,17 +75,17 @@ class MatchesScreen extends StatelessWidget {
 
           // Filter tabs
           SizedBox(
-            height: 40.h,
+            height: 40,
             child: Obx(() => ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: MatchTab.values.map((tab) {
                     return _buildFilterTab(tab, controller);
                   }).toList(),
                 )),
           ),
 
-          SizedBox(height: 12.h),
+          const SizedBox(height: 12),
 
           // Matches list
           Expanded(
@@ -123,14 +122,14 @@ class MatchesScreen extends StatelessWidget {
                 onRefresh: controller.refreshMatches,
                 child: ListView.builder(
                   controller: controller.scrollController,
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: controller.matches.length +
                       (controller.isLoadingMore.value ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == controller.matches.length) {
-                      return Padding(
-                        padding: EdgeInsets.all(16.w),
-                        child: const Center(
+                      return const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(
                           child: CircularProgressIndicator(),
                         ),
                       );
@@ -152,7 +151,7 @@ class MatchesScreen extends StatelessWidget {
   Widget _buildFilterTab(MatchTab tab, MatchesController controller) {
     final isSelected = controller.selectedTab.value == tab;
     return Padding(
-      padding: EdgeInsets.only(right: 8.w),
+      padding: const EdgeInsets.only(right: 8),
       child: FilterChip(
         label: Text(controller.getTabName(tab)),
         selected: isSelected,
@@ -169,14 +168,14 @@ class MatchesScreen extends StatelessWidget {
 
   Widget _buildMatchCard(MatchModel match, MatchesController controller) {
     return Card(
-      margin: EdgeInsets.only(bottom: 16.h),
+      margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(16),
       ),
       elevation: 2,
       child: InkWell(
         onTap: () => controller.viewProfile(match.id),
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -184,17 +183,17 @@ class MatchesScreen extends StatelessWidget {
             Stack(
               children: [
                 Container(
-                  height: 200.h,
+                  height: 200,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(16.r),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
                     ),
                   ),
                   child: match.profilePhoto != null
                       ? ClipRRect(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(16.r),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(16),
                           ),
                           child: Image.memory(
                             Uri.parse(match.profilePhoto!).data!.contentAsBytes(),
@@ -209,31 +208,31 @@ class MatchesScreen extends StatelessWidget {
                 // Verified badge
                 if (match.isVerified)
                   Positioned(
-                    top: 12.h,
-                    left: 12.w,
+                    top: 12,
+                    left: 12,
                     child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 4.h,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.success,
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.verified,
-                            size: 14.sp,
+                            size: 14,
                             color: Colors.white,
                           ),
-                          SizedBox(width: 4.w),
+                          SizedBox(width: 4),
                           Text(
                             'Verified',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 10.sp,
+                              fontSize: 10,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -245,22 +244,22 @@ class MatchesScreen extends StatelessWidget {
                 // Online indicator
                 if (match.isOnline)
                   Positioned(
-                    top: 12.h,
-                    right: 12.w,
+                    top: 12,
+                    right: 12,
                     child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 4.h,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.green,
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Online',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10.sp,
+                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -269,12 +268,12 @@ class MatchesScreen extends StatelessWidget {
 
                 // Shortlist button
                 Positioned(
-                  bottom: 12.h,
-                  right: 12.w,
+                  bottom: 12,
+                  right: 12,
                   child: GestureDetector(
                     onTap: () => controller.toggleShortlist(match.id),
                     child: Container(
-                      padding: EdgeInsets.all(8.w),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
@@ -292,7 +291,7 @@ class MatchesScreen extends StatelessWidget {
                         color: match.isShortlisted
                             ? AppColors.primary
                             : AppColors.iconSecondary,
-                        size: 20.sp,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -302,7 +301,7 @@ class MatchesScreen extends StatelessWidget {
 
             // Profile info
             Padding(
-              padding: EdgeInsets.all(16.w),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -313,7 +312,7 @@ class MatchesScreen extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 8.h),
+                  const SizedBox(height: 8),
 
                   // Basic info row
                   Row(
@@ -321,11 +320,11 @@ class MatchesScreen extends StatelessWidget {
                       if (match.age != null)
                         _buildInfoChip(Icons.cake, match.ageDisplay),
                       if (match.displayHeight != null) ...[
-                        SizedBox(width: 12.w),
+                        const SizedBox(width: 12),
                         _buildInfoChip(Icons.height, match.displayHeight!),
                       ],
                       if (match.currentCity != null) ...[
-                        SizedBox(width: 12.w),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: _buildInfoChip(
                             Icons.location_on,
@@ -336,7 +335,7 @@ class MatchesScreen extends StatelessWidget {
                       ],
                     ],
                   ),
-                  SizedBox(height: 8.h),
+                  const SizedBox(height: 8),
 
                   // Education & Job
                   if (match.educationJobLine.isNotEmpty)
@@ -349,7 +348,7 @@ class MatchesScreen extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                  SizedBox(height: 16.h),
+                  const SizedBox(height: 16),
 
                   // Interest action buttons
                   _buildInterestButtons(match, controller),
@@ -366,7 +365,7 @@ class MatchesScreen extends StatelessWidget {
     return Center(
       child: Icon(
         Icons.person,
-        size: 80.sp,
+        size: 80,
         color: Colors.grey.shade400,
       ),
     );
@@ -376,8 +375,8 @@ class MatchesScreen extends StatelessWidget {
     final widget = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14.sp, color: AppColors.iconSecondary),
-        SizedBox(width: 4.w),
+        Icon(icon, size: 14, color: AppColors.iconSecondary),
+        const SizedBox(width: 4),
         overflow
             ? Flexible(
                 child: Text(
@@ -400,16 +399,16 @@ class MatchesScreen extends StatelessWidget {
       case InterestStatus.sent:
         return Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(vertical: 12.h),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: AppColors.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: Row(
+          child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.check_circle, color: AppColors.primary, size: 18.sp),
-              SizedBox(width: 8.w),
+              Icon(Icons.check_circle, color: AppColors.primary, size: 18),
+              SizedBox(width: 8),
               Text(
                 'Interest Sent',
                 style: TextStyle(
@@ -432,7 +431,7 @@ class MatchesScreen extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: 8.h),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -444,7 +443,7 @@ class MatchesScreen extends StatelessWidget {
                     child: const Text('Accept'),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => controller.rejectInterest(match.id),
@@ -459,16 +458,16 @@ class MatchesScreen extends StatelessWidget {
       case InterestStatus.accepted:
         return Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(vertical: 12.h),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: AppColors.success.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: Row(
+          child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.favorite, color: AppColors.success, size: 18.sp),
-              SizedBox(width: 8.w),
+              Icon(Icons.favorite, color: AppColors.success, size: 18),
+              SizedBox(width: 8),
               Text(
                 'Connected',
                 style: TextStyle(
@@ -483,10 +482,10 @@ class MatchesScreen extends StatelessWidget {
       case InterestStatus.rejected:
         return Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(vertical: 12.h),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             'Not interested',
@@ -506,7 +505,7 @@ class MatchesScreen extends StatelessWidget {
               'Interested with this profile?',
               style: AppTextStyles.bodySmall,
             ),
-            SizedBox(height: 8.h),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -519,7 +518,7 @@ class MatchesScreen extends StatelessWidget {
                     child: const Text('Yes, Interested'),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => controller.skipMatch(match.id),

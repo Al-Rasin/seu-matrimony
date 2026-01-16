@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'routes/app_pages.dart';
 import 'themes/app_theme.dart';
@@ -9,15 +10,24 @@ class SeuMatrimonyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'SEU Matrimony',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      initialRoute: AppPages.initial,
-      getPages: AppPages.routes,
-      initialBinding: InitialBinding(),
-      defaultTransition: Transition.cupertino,
-      transitionDuration: const Duration(milliseconds: 300),
+    return ScreenUtilInit(
+      designSize: const Size(375, 812), // iPhone X design size
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return GetMaterialApp(
+          title: 'SEU Matrimony',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: ThemeMode.light,
+          initialRoute: AppPages.initial,
+          getPages: AppPages.routes,
+          initialBinding: InitialBinding(),
+          defaultTransition: Transition.cupertino,
+          transitionDuration: const Duration(milliseconds: 300),
+        );
+      },
     );
   }
 }
