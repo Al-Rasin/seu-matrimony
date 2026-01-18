@@ -66,6 +66,14 @@ class AuthService extends GetxService {
       // Update display name
       await user.updateDisplayName(fullName);
 
+      // Send email verification
+      try {
+        await user.sendEmailVerification();
+        debugPrint('Verification email sent to ${user.email}');
+      } catch (e) {
+        debugPrint('CRITICAL: Failed to send verification email: $e');
+      }
+
       // Create user document in Firestore
       await _firestoreService.createWithId(
         collection: FirebaseConstants.usersCollection,
