@@ -6,9 +6,17 @@ import '../../core/services/mock_data_service.dart';
 import '../models/user_model.dart';
 
 class AuthRepository {
-  final StorageService _storageService = Get.find<StorageService>();
-  final MockDataService _mockDataService = Get.find<MockDataService>();
+  final StorageService _storageService;
+  final MockDataService _mockDataService;
   AuthService? _authService;
+
+  AuthRepository({
+    StorageService? storageService,
+    MockDataService? mockDataService,
+    AuthService? authService,
+  })  : _storageService = storageService ?? Get.find<StorageService>(),
+        _mockDataService = mockDataService ?? Get.find<MockDataService>(),
+        _authService = authService;
 
   AuthService get authService {
     _authService ??= Get.find<AuthService>();

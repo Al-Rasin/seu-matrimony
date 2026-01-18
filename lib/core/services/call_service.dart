@@ -1,7 +1,12 @@
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart';
+import 'auth_service.dart';
+import 'firestore_service.dart';
+import '../constants/firebase_constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Service to handle video/voice calls using Agora SDK
 class CallService extends GetxService with WidgetsBindingObserver {
@@ -11,8 +16,22 @@ class CallService extends GetxService with WidgetsBindingObserver {
   final FirestoreService _firestoreService = Get.find<FirestoreService>();
   final AuthService _authService = Get.find<AuthService>();
 
-  // ... (rest of class)
-  
+  // Placeholder Agora App ID - User needs to provide this
+  static const String appId = "YOUR_AGORA_APP_ID";
+
+  final isJoined = false.obs;
+  final remoteUid = Rxn<int>();
+  final isMuted = false.obs;
+  final isCameraOff = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    WidgetsBinding.instance.addObserver(this);
+    _initAgora();
+    _listenForIncomingCalls();
+  }
+
   void _listenForIncomingCalls() {
     final userId = _authService.currentUserId;
     if (userId == null) return;
@@ -66,20 +85,6 @@ class CallService extends GetxService with WidgetsBindingObserver {
         ],
       ),
     );
-  }
-  
-  // Placeholder Agora App ID - User needs to provide this
-  static const String appId = "YOUR_AGORA_APP_ID";
-
-  final isJoined = false.obs;
-  final remoteUid = Rxn<int>();
-  final isMuted = false.obs;
-  final isCameraOff = false.obs;
-
-  @override
-  void onInit() {
-    super.onInit();
-    _initAgora();
   }
 
   Future<void> _initAgora() async {
@@ -169,6 +174,7 @@ class CallService extends GetxService with WidgetsBindingObserver {
 
   @override
   void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
     _engine.release();
     super.onClose();
   }

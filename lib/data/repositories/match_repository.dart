@@ -56,6 +56,20 @@ class MatchRepository {
 
     // Apply filters
     if (filter != null) {
+      if (filter.gender != null && filter.gender!.isNotEmpty) {
+        filters.add(QueryFilter(
+          field: FirebaseConstants.fieldGender,
+          operator: QueryOperator.isEqualTo,
+          value: filter.gender,
+        ));
+      }
+      if (filter.department != null && filter.department!.isNotEmpty) {
+        filters.add(QueryFilter(
+          field: FirebaseConstants.fieldDepartment,
+          operator: QueryOperator.isEqualTo,
+          value: filter.department,
+        ));
+      }
       if (filter.religion != null && filter.religion!.isNotEmpty) {
         filters.add(QueryFilter(
           field: FirebaseConstants.fieldReligion,

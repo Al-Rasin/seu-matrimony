@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../app/themes/app_colors.dart';
 import '../../core/utils/image_utils.dart';
 
@@ -36,13 +37,16 @@ class Base64Image extends StatelessWidget {
     }
 
     try {
-      final bytes = ImageUtils.base64ToBytes(base64String!);
+      final bytes = ImageUtils.getCachedBytes(base64String!);
 
       Widget image = Image.memory(
         bytes,
         width: width,
         height: height,
         fit: fit,
+        // Optimize memory by resizing image in memory if dimensions are provided
+        cacheWidth: width != null ? (width! * Get.pixelRatio).round() : null,
+        cacheHeight: height != null ? (height! * Get.pixelRatio).round() : null,
         errorBuilder: (context, error, stackTrace) => _buildError(),
       );
 

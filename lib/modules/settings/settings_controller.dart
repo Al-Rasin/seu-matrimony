@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/user_repository.dart';
@@ -60,8 +61,17 @@ class SettingsController extends GetxController {
 
   Future<void> deleteAccount() async {
     // Show confirmation dialog
-    Get.dialog(
-      // ... dialog implementation
+    Get.defaultDialog(
+      title: 'Delete Account',
+      middleText: 'Are you sure you want to delete your account? This action cannot be undone.',
+      textConfirm: 'Delete',
+      textCancel: 'Cancel',
+      confirmTextColor: Colors.white,
+      onConfirm: () async {
+        // Implement account deletion logic
+        Get.back();
+        Get.snackbar('Info', 'Account deletion requested');
+      },
     );
   }
 

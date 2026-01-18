@@ -36,81 +36,98 @@ class AppPages {
       name: AppRoutes.splash,
       page: () => const SplashScreen(),
       binding: InitialBinding(),
+      transition: Transition.fadeIn,
     ),
     GetPage(
       name: AppRoutes.onboarding,
       page: () => const OnboardingScreen(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.login,
       page: () => const LoginScreen(),
       binding: AuthBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.register,
       page: () => const RegisterScreen(),
       binding: AuthBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.forgotPassword,
       page: () => const ForgotPasswordScreen(),
       binding: AuthBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.registration,
       page: () => const RegistrationScreen(),
       binding: ProfileBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.home,
       page: () => const HomeScreen(),
       binding: HomeBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.matches,
       page: () => const MatchesScreen(),
       binding: MatchesBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.profileDetail,
       page: () => const ProfileDetailScreen(),
       binding: MatchesBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.filters,
       page: () => const FiltersScreen(),
+      transition: Transition.downToUp,
     ),
     GetPage(
       name: AppRoutes.chatList,
       page: () => const ChatListScreen(),
       binding: ChatBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.chatDetail,
       page: () => const ChatDetailScreen(),
       binding: ChatBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.myProfile,
       page: () => const MyProfileScreen(),
       binding: ProfileBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.editProfile,
       page: () => const EditProfileScreen(),
       binding: ProfileBinding(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.subscription,
       page: () => const SubscriptionScreen(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.settings,
       page: () => const SettingsScreen(),
+      transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.notifications,
       page: () => const NotificationsScreen(),
+      transition: Transition.cupertino,
     ),
   ];
 }

@@ -1,5 +1,6 @@
 /// Match filter model for filtering potential matches
 class MatchFilter {
+  final String? gender;
   final int? minAge;
   final int? maxAge;
   final double? minHeight;
@@ -15,6 +16,7 @@ class MatchFilter {
   final bool? onlineOnly;
 
   const MatchFilter({
+    this.gender,
     this.minAge,
     this.maxAge,
     this.minHeight,
@@ -33,6 +35,7 @@ class MatchFilter {
   /// Convert to query parameters for API
   Map<String, dynamic> toQueryParams() {
     return {
+      if (gender != null && gender!.isNotEmpty) 'gender': gender,
       if (minAge != null) 'min_age': minAge,
       if (maxAge != null) 'max_age': maxAge,
       if (minHeight != null) 'min_height': minHeight,
@@ -52,6 +55,7 @@ class MatchFilter {
   /// Create from query parameters
   factory MatchFilter.fromQueryParams(Map<String, dynamic> params) {
     return MatchFilter(
+      gender: params['gender'] as String?,
       minAge: params['min_age'] as int?,
       maxAge: params['max_age'] as int?,
       minHeight: params['min_height'] as double?,
@@ -70,6 +74,7 @@ class MatchFilter {
 
   /// Create a copy with updated values
   MatchFilter copyWith({
+    String? gender,
     int? minAge,
     int? maxAge,
     double? minHeight,
@@ -85,6 +90,7 @@ class MatchFilter {
     bool? onlineOnly,
   }) {
     return MatchFilter(
+      gender: gender ?? this.gender,
       minAge: minAge ?? this.minAge,
       maxAge: maxAge ?? this.maxAge,
       minHeight: minHeight ?? this.minHeight,
@@ -103,7 +109,8 @@ class MatchFilter {
 
   /// Check if any filter is applied
   bool get hasActiveFilters {
-    return minAge != null ||
+    return (gender != null && gender!.isNotEmpty) ||
+        minAge != null ||
         maxAge != null ||
         minHeight != null ||
         maxHeight != null ||
@@ -121,6 +128,7 @@ class MatchFilter {
   /// Get count of active filters
   int get activeFilterCount {
     int count = 0;
+    if (gender != null && gender!.isNotEmpty) count++;
     if (minAge != null || maxAge != null) count++;
     if (minHeight != null || maxHeight != null) count++;
     if (religion != null && religion!.isNotEmpty) count++;
@@ -140,7 +148,7 @@ class MatchFilter {
 
   @override
   String toString() {
-    return 'MatchFilter(age: $minAge-$maxAge, height: $minHeight-$maxHeight, '
+    return 'MatchFilter(gender: $gender, age: $minAge-$maxAge, height: $minHeight-$maxHeight, '
         'religion: $religion, status: $maritalStatus, edu: $education, '
         'city: $city, dept: $department)';
   }
@@ -149,6 +157,7 @@ class MatchFilter {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is MatchFilter &&
+        other.gender == gender &&
         other.minAge == minAge &&
         other.maxAge == maxAge &&
         other.minHeight == minHeight &&
@@ -167,6 +176,7 @@ class MatchFilter {
   @override
   int get hashCode {
     return Object.hash(
+      gender,
       minAge,
       maxAge,
       minHeight,

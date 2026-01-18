@@ -402,7 +402,7 @@ class ChatRepository {
       for (final message in messages) {
         if (message[FirebaseConstants.fieldSenderId] != userId &&
             message[FirebaseConstants.fieldIsRead] == false) {
-          await firestoreService.firestore
+          await firestoreService.firestore!
               .collection(FirebaseConstants.conversationsCollection)
               .doc(conversationId)
               .collection(FirebaseConstants.messagesSubcollection)
@@ -630,7 +630,7 @@ class ChatRepository {
     // Increment unread count for all participants except sender
     for (final participantId in participants) {
       if (participantId != senderId) {
-        await firestoreService.firestore
+        await firestoreService.firestore!
             .collection(FirebaseConstants.conversationsCollection)
             .doc(conversationId)
             .update({

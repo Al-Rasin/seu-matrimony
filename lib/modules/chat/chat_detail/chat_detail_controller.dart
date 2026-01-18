@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/repositories/chat_repository.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../data/models/message_model.dart';

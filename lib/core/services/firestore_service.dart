@@ -6,6 +6,7 @@ import '../../main.dart' show isFirebaseInitialized;
 /// Generic Firestore service for CRUD operations
 class FirestoreService extends GetxService {
   FirebaseFirestore? _firestore;
+  final Map<String, dynamic> _cache = {};
 
   FirebaseFirestore? get firestore => _firestore;
 
@@ -25,7 +26,7 @@ class FirestoreService extends GetxService {
 
   void _ensureInitialized() {
     if (_firestore == null) {
-      throw Exception('Firebase is not initialized. Check your google-services.json configuration.');
+      throw Exception('Firebase is not initialized. Check your configuration.');
     }
   }
 
@@ -61,15 +62,27 @@ class FirestoreService extends GetxService {
   Future<Map<String, dynamic>?> getById({
     required String collection,
     required String documentId,
+    bool useCache = false,
   }) async {
     _ensureInitialized();
+    final cacheKey = '$collection/$documentId';
+    if (useCache && _cache.containsKey(cacheKey)) {
+      return _cache[cacheKey];
+    }
+
     final doc = await _firestore!.collection(collection).doc(documentId).get();
     if (!doc.exists) return null;
 
-    return {
+    final data = {
       'id': doc.id,
       ...doc.data()!,
     };
+    
+    if (useCache) {
+      _cache[cacheKey] = data;
+    }
+    
+    return data;
   }
 
   /// Read a single document as stream
@@ -77,7 +90,7 @@ class FirestoreService extends GetxService {
     required String collection,
     required String documentId,
   }) {
-    if (_firestore == null) return const Stream.empty();
+    if (_firestore == null) return Stream.empty();
     return _firestore!
         .collection(collection)
         .doc(documentId)
@@ -228,7 +241,7 @@ class FirestoreService extends GetxService {
     String? orderBy,
     bool descending = false,
   }) {
-    if (_firestore == null) return const Stream.empty();
+    if (_firestore == null) return Stream.empty();
     Query query = _firestore!.collection(collection);
 
     // Apply filters
@@ -346,7 +359,7 @@ class FirestoreService extends GetxService {
     String? orderBy,
     bool descending = false,
   }) {
-    if (_firestore == null) return const Stream.empty();
+    if (_firestore == null) return Stream.empty();
     Query query = _firestore!
         .collection(parentCollection)
         .doc(parentDocumentId)
@@ -431,6 +444,11 @@ class FirestoreService extends GetxService {
 
   /// Remove from array
   FieldValue arrayRemove(List<dynamic> elements) => FieldValue.arrayRemove(elements);
+
+  /// Clear Firestore cache
+  void clearCache() {
+    _cache.clear();
+  }
 }
 
 // ==================== HELPER CLASSES ====================
