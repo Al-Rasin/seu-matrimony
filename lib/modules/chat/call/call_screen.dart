@@ -1,9 +1,7 @@
-import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'call_controller.dart';
 import '../../../core/services/call_service.dart';
-import '../../../app/themes/app_colors.dart';
 
 class CallScreen extends StatelessWidget {
   const CallScreen({super.key});
@@ -17,15 +15,29 @@ class CallScreen extends StatelessWidget {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Remote Video
+          // Remote Video Placeholder
           Center(
             child: Obx(() {
               if (callService.remoteUid.value != null) {
-                return AgoraVideoView(
-                  controller: VideoViewController.remote(
-                    rtcEngine: callService.engine,
-                    canvas: VideoCanvas(uid: callService.remoteUid.value),
-                    connection: RtcConnection(channelId: controller.channelName.value),
+                return Container(
+                  color: Colors.grey[800],
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.person, size: 80, color: Colors.white54),
+                        const SizedBox(height: 16),
+                        Text(
+                          controller.participantName.value,
+                          style: const TextStyle(color: Colors.white, fontSize: 24),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Remote Video Feed (Mock)",
+                          style: TextStyle(color: Colors.white54),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               } else {
@@ -44,7 +56,7 @@ class CallScreen extends StatelessWidget {
             }),
           ),
 
-          // Local Video (Small window)
+          // Local Video Placeholder (Small window)
           Positioned(
             right: 16,
             top: 60,
@@ -52,19 +64,24 @@ class CallScreen extends StatelessWidget {
             height: 160,
             child: Container(
               decoration: BoxDecoration(
+                color: Colors.grey[900],
                 border: Border.all(color: Colors.white, width: 2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: Obx(() => callService.isJoined.value && !callService.isCameraOff.value
-                    ? AgoraVideoView(
-                        controller: VideoViewController(
-                          rtcEngine: callService.engine,
-                          canvas: const VideoCanvas(uid: 0),
+                child: Obx(() => !callService.isCameraOff.value
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.videocam, color: Colors.white54),
+                            SizedBox(height: 4),
+                            Text("You", style: TextStyle(color: Colors.white, fontSize: 12)),
+                          ],
                         ),
                       )
-                    : Container(color: Colors.grey[900])),
+                    : Container(color: Colors.black, child: const Center(child: Icon(Icons.videocam_off, color: Colors.white54)))),
               ),
             ),
           ),
