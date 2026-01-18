@@ -6,6 +6,7 @@ import '../../../app/themes/app_text_styles.dart';
 import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/custom_dropdown.dart';
+import '../../../shared/widgets/custom_checkbox.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
@@ -207,6 +208,30 @@ class RegisterScreen extends StatelessWidget {
                         return null;
                       },
                     ),
+                    const SizedBox(height: 16),
+                    Obx(() => TermsCheckbox(
+                          value: controller.acceptedTerms.value,
+                          onChanged: (val) =>
+                              controller.acceptedTerms.value = val,
+                          onTermsTap: () {
+                            Get.dialog(
+                              AlertDialog(
+                                title: const Text('Terms & Conditions'),
+                                content: const SingleChildScrollView(
+                                  child: Text(
+                                    '1. Acceptance of Terms\nBy accessing and using this service, you accept and agree to be bound by the terms and provision of this agreement.\n\n2. User Eligibility\nYou must be at least 18 years of age and a student/alumni of SEU to use this Service.\n\n3. Verification\nAll profiles must be verified with a valid SEU ID card.\n\n4. Privacy\nWe value your privacy and will protect your personal information.',
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Get.back(),
+                                    child: const Text('Close'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        )),
                     const SizedBox(height: 24),
                     Obx(() => CustomButton(
                           text: 'Register Now',
