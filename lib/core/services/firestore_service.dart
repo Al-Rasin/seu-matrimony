@@ -1,23 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import '../constants/firebase_constants.dart';
+import '../../main.dart' show isFirebaseInitialized;
 
 /// Generic Firestore service for CRUD operations
 class FirestoreService extends GetxService {
-  late final FirebaseFirestore _firestore;
+  FirebaseFirestore? _firestore;
 
-  FirebaseFirestore get firestore => _firestore;
+  FirebaseFirestore? get firestore => _firestore;
 
   @override
   void onInit() {
     super.onInit();
-    _firestore = FirebaseFirestore.instance;
+    if (isFirebaseInitialized) {
+      _firestore = FirebaseFirestore.instance;
 
-    // Enable offline persistence
-    _firestore.settings = const Settings(
-      persistenceEnabled: true,
-      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-    );
+      // Enable offline persistence
+      _firestore!.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+    }
+  }
+
+  void _ensureInitialized() {
+    if (_firestore == null) {
+      throw Exception('Firebase is not initialized. Check your google-services.json configuration.');
+    }
   }
 
   // ==================== GENERIC CRUD OPERATIONS ====================
@@ -27,10 +36,11 @@ class FirestoreService extends GetxService {
     required String collection,
     required Map<String, dynamic> data,
   }) async {
+    _ensureInitialized();
     data[FirebaseConstants.fieldCreatedAt] = FieldValue.serverTimestamp();
     data[FirebaseConstants.fieldUpdatedAt] = FieldValue.serverTimestamp();
 
-    final docRef = await _firestore.collection(collection).add(data);
+    final docRef = await _firestore!.collection(collection).add(data);
     return docRef.id;
   }
 
@@ -40,10 +50,11 @@ class FirestoreService extends GetxService {
     required String documentId,
     required Map<String, dynamic> data,
   }) async {
+    _ensureInitialized();
     data[FirebaseConstants.fieldCreatedAt] = FieldValue.serverTimestamp();
     data[FirebaseConstants.fieldUpdatedAt] = FieldValue.serverTimestamp();
 
-    await _firestore.collection(collection).doc(documentId).set(data);
+    await _firestore!.collection(collection).doc(documentId).set(data);
   }
 
   /// Read a single document by ID
@@ -51,7 +62,8 @@ class FirestoreService extends GetxService {
     required String collection,
     required String documentId,
   }) async {
-    final doc = await _firestore.collection(collection).doc(documentId).get();
+    _ensureInitialized();
+    final doc = await _firestore!.collection(collection).doc(documentId).get();
     if (!doc.exists) return null;
 
     return {
@@ -65,7 +77,8 @@ class FirestoreService extends GetxService {
     required String collection,
     required String documentId,
   }) {
-    return _firestore
+    if (_firestore == null) return const Stream.empty();
+    return _firestore!
         .collection(collection)
         .doc(documentId)
         .snapshots()
@@ -84,8 +97,9 @@ class FirestoreService extends GetxService {
     required String documentId,
     required Map<String, dynamic> data,
   }) async {
+    _ensureInitialized();
     data[FirebaseConstants.fieldUpdatedAt] = FieldValue.serverTimestamp();
-    await _firestore.collection(collection).doc(documentId).update(data);
+    await _firestore!.collection(collection).doc(documentId).update(data);
   }
 
   /// Delete a document
@@ -93,7 +107,8 @@ class FirestoreService extends GetxService {
     required String collection,
     required String documentId,
   }) async {
-    await _firestore.collection(collection).doc(documentId).delete();
+    _ensureInitialized();
+    await _firestore!.collection(collection).doc(documentId).delete();
   }
 
   /// Check if document exists
@@ -101,7 +116,8 @@ class FirestoreService extends GetxService {
     required String collection,
     required String documentId,
   }) async {
-    final doc = await _firestore.collection(collection).doc(documentId).get();
+    _ensureInitialized();
+    final doc = await _firestore!.collection(collection).doc(documentId).get();
     return doc.exists;
   }
 
@@ -114,7 +130,8 @@ class FirestoreService extends GetxService {
     String? orderBy,
     bool descending = false,
   }) async {
-    Query query = _firestore.collection(collection);
+    _ensureInitialized();
+    Query query = _firestore!.collection(collection);
 
     if (orderBy != null) {
       query = query.orderBy(orderBy, descending: descending);
@@ -141,7 +158,8 @@ class FirestoreService extends GetxService {
     String? orderBy,
     bool descending = false,
   }) async {
-    Query query = _firestore.collection(collection).where(field, isEqualTo: isEqualTo);
+    _ensureInitialized();
+    Query query = _firestore!.collection(collection).where(field, isEqualTo: isEqualTo);
 
     if (orderBy != null) {
       query = query.orderBy(orderBy, descending: descending);
@@ -168,7 +186,8 @@ class FirestoreService extends GetxService {
     bool descending = false,
     DocumentSnapshot? startAfter,
   }) async {
-    Query query = _firestore.collection(collection);
+    _ensureInitialized();
+    Query query = _firestore!.collection(collection);
 
     // Apply filters
     if (filters != null) {
@@ -209,7 +228,8 @@ class FirestoreService extends GetxService {
     String? orderBy,
     bool descending = false,
   }) {
-    Query query = _firestore.collection(collection);
+    if (_firestore == null) return const Stream.empty();
+    Query query = _firestore!.collection(collection);
 
     // Apply filters
     if (filters != null) {
@@ -274,9 +294,10 @@ class FirestoreService extends GetxService {
     required String subcollection,
     required Map<String, dynamic> data,
   }) async {
+    _ensureInitialized();
     data[FirebaseConstants.fieldCreatedAt] = FieldValue.serverTimestamp();
 
-    final docRef = await _firestore
+    final docRef = await _firestore!
         .collection(parentCollection)
         .doc(parentDocumentId)
         .collection(subcollection)
@@ -294,7 +315,8 @@ class FirestoreService extends GetxService {
     String? orderBy,
     bool descending = false,
   }) async {
-    Query query = _firestore
+    _ensureInitialized();
+    Query query = _firestore!
         .collection(parentCollection)
         .doc(parentDocumentId)
         .collection(subcollection);
@@ -324,7 +346,8 @@ class FirestoreService extends GetxService {
     String? orderBy,
     bool descending = false,
   }) {
-    Query query = _firestore
+    if (_firestore == null) return const Stream.empty();
+    Query query = _firestore!
         .collection(parentCollection)
         .doc(parentDocumentId)
         .collection(subcollection);
@@ -350,10 +373,11 @@ class FirestoreService extends GetxService {
 
   /// Batch write multiple documents
   Future<void> batchWrite(List<BatchOperation> operations) async {
-    final batch = _firestore.batch();
+    _ensureInitialized();
+    final batch = _firestore!.batch();
 
     for (final operation in operations) {
-      final docRef = _firestore.collection(operation.collection).doc(operation.documentId);
+      final docRef = _firestore!.collection(operation.collection).doc(operation.documentId);
 
       switch (operation.type) {
         case BatchOperationType.create:
@@ -378,19 +402,22 @@ class FirestoreService extends GetxService {
   Future<T> runTransaction<T>(
     Future<T> Function(Transaction transaction) transactionHandler,
   ) async {
-    return await _firestore.runTransaction(transactionHandler);
+    _ensureInitialized();
+    return await _firestore!.runTransaction(transactionHandler);
   }
 
   // ==================== UTILITY METHODS ====================
 
   /// Get document reference
   DocumentReference getDocRef(String collection, String documentId) {
-    return _firestore.collection(collection).doc(documentId);
+    _ensureInitialized();
+    return _firestore!.collection(collection).doc(documentId);
   }
 
   /// Get collection reference
   CollectionReference getCollectionRef(String collection) {
-    return _firestore.collection(collection);
+    _ensureInitialized();
+    return _firestore!.collection(collection);
   }
 
   /// Get server timestamp
