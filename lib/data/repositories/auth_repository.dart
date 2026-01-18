@@ -249,4 +249,12 @@ class AuthRepository {
     }
     return _storageService.isProfileComplete;
   }
+
+  /// Check if email is verified
+  Future<bool> isEmailVerified() async {
+    if (useFirebase) {
+      return await authService.isEmailVerified();
+    }
+    return true; // Mock: always verified
+  }
 }

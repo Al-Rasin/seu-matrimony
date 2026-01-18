@@ -239,15 +239,15 @@ class RegisterController extends GetxController {
 
       Get.snackbar(
         'Account Created',
-        'A verification email has been sent to ${emailController.text.trim()}. Please check your inbox (and spam folder).',
+        'A verification email has been sent to ${emailController.text.trim()}. Please verify your email before logging in.',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade900,
         duration: const Duration(seconds: 5),
       );
 
-      // Navigate to registration flow to complete profile
-      Get.offAllNamed(AppRoutes.registration);
+      // Navigate to email verification screen
+      Get.offAllNamed(AppRoutes.emailVerification, arguments: emailController.text.trim());
     } catch (e) {
       String errorMessage = e.toString();
       if (errorMessage.startsWith('Exception: ')) {

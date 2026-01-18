@@ -52,6 +52,21 @@ class LoginController extends GetxController {
       // Check user role for redirect
       final role = await _authRepository.getUserRole();
 
+      // Check email verification
+      final isVerified = await _authRepository.isEmailVerified();
+      if (!isVerified) {
+        await _authRepository.logout();
+        Get.snackbar(
+          'Email Not Verified',
+          'Please verify your email address to continue. Check your inbox.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange.shade100,
+          colorText: Colors.orange.shade900,
+          duration: const Duration(seconds: 5),
+        );
+        return;
+      }
+
       // Request notification permissions
       if (Get.isRegistered<NotificationService>()) {
         Get.find<NotificationService>().requestPermissions();

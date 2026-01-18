@@ -14,6 +14,7 @@ import '../../modules/splash/splash_screen.dart';
 import '../../modules/onboarding/onboarding_screen.dart';
 import '../../modules/auth/login/login_screen.dart';
 import '../../modules/auth/register/register_screen.dart';
+import '../../modules/auth/register/email_verification_screen.dart';
 import '../../modules/auth/forgot_password/forgot_password_screen.dart';
 import '../../modules/registration/registration_screen.dart';
 import '../../modules/home/home_screen.dart';
@@ -54,6 +55,11 @@ class AppPages {
       page: () => const RegisterScreen(),
       binding: AuthBinding(),
       transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.emailVerification,
+      page: () => EmailVerificationScreen(email: Get.arguments ?? ''),
+      transition: Transition.fadeIn,
     ),
     GetPage(
       name: AppRoutes.forgotPassword,
