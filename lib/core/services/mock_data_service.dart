@@ -4,7 +4,7 @@ import '../../data/models/user_model.dart';
 /// Mock data service for development without backend
 class MockDataService extends GetxService {
   /// Flag to enable/disable mock mode
-  static const bool useMockData = true;
+  static const bool useMockData = false;
 
   /// Mock users database
   final Map<String, MockUser> _mockUsers = {

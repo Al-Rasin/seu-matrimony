@@ -420,6 +420,35 @@ class ChatRepository {
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
+  /// Set typing status
+  Future<void> setTypingStatus(String conversationId, bool isTyping) async {
+    if (useFirebase) {
+      final userId = currentUserId;
+      if (userId == null) return;
+
+      await firestoreService.update(
+        collection: FirebaseConstants.conversationsCollection,
+        documentId: conversationId,
+        data: {
+          '${FirebaseConstants.fieldTypingStatus}.$userId': isTyping ? FieldValue.serverTimestamp() : null,
+        },
+      );
+    }
+  }
+
+  /// Stream typing status
+  Stream<Map<String, dynamic>> streamTypingStatus(String conversationId) {
+    if (useFirebase) {
+      return firestoreService.getByIdStream(
+        collection: FirebaseConstants.conversationsCollection,
+        documentId: conversationId,
+      ).map((data) {
+        return (data?[FirebaseConstants.fieldTypingStatus] as Map<String, dynamic>?) ?? {};
+      });
+    }
+    return Stream.value({});
+  }
+
   // ==================== BLOCK/REPORT ====================
 
   /// Block a user

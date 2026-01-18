@@ -273,6 +273,105 @@ class MatchRepository {
     return enriched.isNotEmpty ? enriched.first : match;
   }
 
+  /// Stream received interests (real-time)
+  Stream<List<MatchModel>> streamReceivedInterests() {
+    if (!useFirebase || currentUserId == null) return Stream.value([]);
+
+    return firestoreService.queryStream(
+      collection: FirebaseConstants.interestsCollection,
+      filters: [
+        QueryFilter(
+          field: FirebaseConstants.fieldToUserId,
+          operator: QueryOperator.isEqualTo,
+          value: currentUserId,
+        ),
+        QueryFilter(
+          field: FirebaseConstants.fieldStatus,
+          operator: QueryOperator.isEqualTo,
+          value: FirebaseConstants.statusPending,
+        ),
+      ],
+    ).asyncMap((interests) async {
+      final matches = <MatchModel>[];
+      for (final interest in interests) {
+        final userId = interest[FirebaseConstants.fieldFromUserId] as String?;
+        if (userId != null) {
+          final userData = await firestoreService.getById(
+            collection: FirebaseConstants.usersCollection,
+            documentId: userId,
+          );
+          if (userData != null) {
+            matches.add(MatchModel.fromFirestore(userData).copyWith(
+              interestStatus: InterestStatus.received,
+              interestId: interest['id'] as String?,
+            ));
+          }
+        }
+      }
+      return matches;
+    });
+  }
+
+  /// Stream sent interests (real-time)
+  Stream<List<MatchModel>> streamSentInterests() {
+    if (!useFirebase || currentUserId == null) return Stream.value([]);
+
+    return firestoreService.queryStream(
+      collection: FirebaseConstants.interestsCollection,
+      filters: [
+        QueryFilter(
+          field: FirebaseConstants.fieldFromUserId,
+          operator: QueryOperator.isEqualTo,
+          value: currentUserId,
+        ),
+      ],
+    ).asyncMap((interests) async {
+      final matches = <MatchModel>[];
+      for (final interest in interests) {
+        final userId = interest[FirebaseConstants.fieldToUserId] as String?;
+        if (userId != null) {
+          final userData = await firestoreService.getById(
+            collection: FirebaseConstants.usersCollection,
+            documentId: userId,
+          );
+          if (userData != null) {
+            final statusStr = interest[FirebaseConstants.fieldStatus] as String?;
+            InterestStatus status = InterestStatus.sent;
+            if (statusStr == FirebaseConstants.statusAccepted) {
+              status = InterestStatus.accepted;
+            } else if (statusStr == FirebaseConstants.statusRejected) {
+              status = InterestStatus.rejected;
+            }
+
+            matches.add(MatchModel.fromFirestore(userData).copyWith(
+              interestStatus: status,
+              interestId: interest['id'] as String?,
+            ));
+          }
+        }
+      }
+      return matches;
+    });
+  }
+
+  /// Stream newly joined users (real-time)
+  Stream<List<MatchModel>> streamNewlyJoined({int limit = 10}) {
+    if (!useFirebase) return Stream.value([]);
+
+    return firestoreService.queryStream(
+      collection: FirebaseConstants.usersCollection,
+      orderBy: FirebaseConstants.fieldCreatedAt,
+      descending: true,
+      limit: limit,
+    ).asyncMap((users) async {
+      final matches = users
+          .where((data) => data['id'] != currentUserId)
+          .map((data) => MatchModel.fromFirestore(data))
+          .toList();
+      return await _enrichMatchesWithStatus(matches);
+    });
+  }
+
   // ==================== INTERESTS ====================
 
   /// Send interest to a match

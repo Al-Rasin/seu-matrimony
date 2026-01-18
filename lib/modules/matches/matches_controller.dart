@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../data/models/match_model.dart';
 import '../../data/models/paginated_response.dart';
 import '../../data/repositories/match_repository.dart';
+import 'dart:async';
 
 /// Filter tab options
 enum MatchTab { all, matchPreference, saved, sentInterests, receivedInterests }
@@ -28,6 +29,9 @@ class MatchesController extends GetxController {
   final currentFilter = Rx<MatchFilter>(MatchFilter.empty);
   final selectedTab = MatchTab.all.obs;
 
+  // Stream subscriptions
+  StreamSubscription? _interestsSubscription;
+
   // Scroll controller for pagination
   late ScrollController scrollController;
 
@@ -40,6 +44,7 @@ class MatchesController extends GetxController {
 
   @override
   void onClose() {
+    _interestsSubscription?.cancel();
     scrollController.dispose();
     searchController.dispose();
     super.onClose();
@@ -54,6 +59,19 @@ class MatchesController extends GetxController {
     }
 
     if (isLoading.value || (!_hasMorePages && !refresh)) return;
+
+    // Cancel existing subscription when loading new tab
+    _interestsSubscription?.cancel();
+
+    if (selectedTab.value == MatchTab.sentInterests) {
+      _listenToSentInterests();
+      return;
+    }
+
+    if (selectedTab.value == MatchTab.receivedInterests) {
+      _listenToReceivedInterests();
+      return;
+    }
 
     try {
       isLoading.value = true;
@@ -90,18 +108,8 @@ class MatchesController extends GetxController {
             perPage: _perPage,
           );
           break;
-        case MatchTab.sentInterests:
-          response = await _matchRepository.getSentInterests(
-            page: _currentPage,
-            perPage: _perPage,
-          );
-          break;
-        case MatchTab.receivedInterests:
-          response = await _matchRepository.getReceivedInterests(
-            page: _currentPage,
-            perPage: _perPage,
-          );
-          break;
+        default:
+          response = PaginatedResponse(items: [], pagination: PaginationMeta.empty());
       }
 
       if (_currentPage == 1) {
@@ -118,6 +126,24 @@ class MatchesController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _listenToSentInterests() {
+    isLoading.value = true;
+    _interestsSubscription = _matchRepository.streamSentInterests().listen((list) {
+      matches.value = list;
+      isLoading.value = false;
+      _hasMorePages = false; // Streams handle all data for now
+    });
+  }
+
+  void _listenToReceivedInterests() {
+    isLoading.value = true;
+    _interestsSubscription = _matchRepository.streamReceivedInterests().listen((list) {
+      matches.value = list;
+      isLoading.value = false;
+      _hasMorePages = false;
+    });
   }
 
   /// Load more matches (pagination)

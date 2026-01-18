@@ -37,6 +37,9 @@ class FirebaseConstants {
   /// Notifications collection - user notifications
   static const String notificationsCollection = 'notifications';
 
+  /// Calls collection - video/voice call history
+  static const String callsCollection = 'calls';
+
   /// App settings collection - app configuration
   static const String appSettingsCollection = 'appSettings';
 
@@ -90,6 +93,7 @@ class FirebaseConstants {
   static const String fieldLastMessage = 'lastMessage';
   static const String fieldLastMessageAt = 'lastMessageAt';
   static const String fieldUnreadCount = 'unreadCount';
+  static const String fieldTypingStatus = 'typingStatus';
 
   // ==================== MESSAGE FIELDS ====================
 
@@ -156,6 +160,14 @@ class FirebaseConstants {
   static const String fieldTitle = 'title';
   static const String fieldBody = 'body';
   static const String fieldData = 'data';
+
+  // ==================== CALL FIELDS ====================
+
+  static const String fieldCallerId = 'callerId';
+  static const String fieldReceiverId = 'receiverId';
+  static const String fieldCallType = 'callType'; // audio, video
+  static const String fieldCallStatus = 'callStatus'; // missed, completed, rejected
+  static const String fieldCallDuration = 'duration';
 
   // ==================== USER ROLES ====================
 
