@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/match_model.dart';
 import '../../../data/repositories/match_repository.dart';
+import '../../../data/repositories/auth_repository.dart';
 
 class ProfileDetailController extends GetxController {
   final MatchRepository _matchRepository = Get.find<MatchRepository>();
+  final AuthRepository _authRepository = Get.find<AuthRepository>();
 
   final Rxn<MatchModel> profile = Rxn<MatchModel>();
   final isLoading = false.obs;
@@ -55,8 +57,25 @@ class ProfileDetailController extends GetxController {
     }
   }
 
+  /// Check if user is verified by admin
+  bool _checkAdminVerification() {
+    if (!_authRepository.isCurrentUserAdminVerified) {
+      Get.snackbar(
+        'Account Not Verified',
+        'Your account is pending verification by admin. You can complete your profile while waiting.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+      return false;
+    }
+    return true;
+  }
+
   Future<void> sendInterest() async {
     if (matchId == null) return;
+    if (!_checkAdminVerification()) return;
 
     try {
       final success = await _matchRepository.sendInterest(matchId!);
@@ -90,6 +109,7 @@ class ProfileDetailController extends GetxController {
 
   Future<void> toggleShortlist() async {
     if (matchId == null) return;
+    if (!_checkAdminVerification()) return;
 
     try {
       bool success;
@@ -121,6 +141,7 @@ class ProfileDetailController extends GetxController {
 
   Future<void> acceptInterest() async {
     if (matchId == null) return;
+    if (!_checkAdminVerification()) return;
 
     try {
       final success = await _matchRepository.acceptInterest(matchId!);
@@ -148,6 +169,7 @@ class ProfileDetailController extends GetxController {
 
   Future<void> rejectInterest() async {
     if (matchId == null) return;
+    if (!_checkAdminVerification()) return;
 
     try {
       final success = await _matchRepository.rejectInterest(matchId!);
@@ -258,6 +280,8 @@ class ProfileDetailController extends GetxController {
 
   void startChat() {
     if (profile.value == null) return;
+    if (!_checkAdminVerification()) return;
+
     Get.toNamed('/chat-detail', arguments: {
       'userId': matchId,
       'userName': profile.value!.fullName,

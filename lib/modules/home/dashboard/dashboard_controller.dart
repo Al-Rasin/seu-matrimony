@@ -2,13 +2,16 @@ import 'package:get/get.dart';
 import '../../../data/models/match_model.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../data/repositories/match_repository.dart';
+import '../../../data/repositories/auth_repository.dart';
 
 class DashboardController extends GetxController {
   final UserRepository _userRepository = Get.find<UserRepository>();
   final MatchRepository _matchRepository = Get.find<MatchRepository>();
+  final AuthRepository _authRepository = Get.find<AuthRepository>();
 
   final userName = 'User'.obs;
   final profileCompletion = 0.obs;
+  final isAdminVerified = false.obs;
   final profileViews = 0.obs;
   final sentInterests = 0.obs;
   final receivedInterests = 0.obs;
@@ -38,6 +41,7 @@ class DashboardController extends GetxController {
       final user = await _userRepository.getCurrentUser();
       userName.value = user['fullName'] ?? 'User';
       profileCompletion.value = await _userRepository.getProfileCompletion();
+      isAdminVerified.value = await _authRepository.isAdminVerified();
     } catch (e) {
       // Handle error
     }

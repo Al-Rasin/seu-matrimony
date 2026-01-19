@@ -31,6 +31,10 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Verification pending banner
+              Obx(() => !controller.isAdminVerified.value
+                  ? _buildVerificationPendingBanner()
+                  : const SizedBox.shrink()),
               // Welcome section
               Text(
                 'Welcome back,',
@@ -72,6 +76,58 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildVerificationPendingBanner() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.hourglass_empty,
+              color: Colors.orange.shade700,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Verification Pending',
+                  style: TextStyle(
+                    color: Colors.orange.shade800,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your account is being reviewed by admin. You can complete your profile while waiting.',
+                  style: TextStyle(
+                    color: Colors.orange.shade700,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

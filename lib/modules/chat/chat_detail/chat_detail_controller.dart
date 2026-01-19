@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/repositories/chat_repository.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../data/models/message_model.dart';
 import '../../../data/models/conversation_model.dart';
@@ -10,6 +11,7 @@ import 'dart:async';
 class ChatDetailController extends GetxController {
   final ChatRepository _chatRepository = Get.find<ChatRepository>();
   final AuthService _authService = Get.find<AuthService>();
+  final AuthRepository _authRepository = Get.find<AuthRepository>();
 
   final messageController = TextEditingController();
   final messages = <MessageModel>[].obs;
@@ -106,8 +108,25 @@ class ChatDetailController extends GetxController {
     await _chatRepository.markAsRead(conversationId!);
   }
 
+  /// Check if user is verified by admin
+  bool _checkAdminVerification() {
+    if (!_authRepository.isCurrentUserAdminVerified) {
+      Get.snackbar(
+        'Account Not Verified',
+        'Your account is pending verification by admin. You can complete your profile while waiting.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+      return false;
+    }
+    return true;
+  }
+
   Future<void> sendMessage() async {
     if (conversationId == null || messageController.text.trim().isEmpty) return;
+    if (!_checkAdminVerification()) return;
 
     try {
       final content = messageController.text.trim();

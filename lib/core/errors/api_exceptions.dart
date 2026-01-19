@@ -26,7 +26,7 @@ class TimeoutException extends ApiException {
 /// Thrown when the server returns 400 Bad Request
 class BadRequestException extends ApiException {
   BadRequestException({String? message, dynamic data})
-    : super(message: message ?? 'Invalid request. Please check your input.', statusCode: 400, data: data);
+      : super(message: message ?? 'Invalid request. Please check your input.', statusCode: 400, data: data);
 }
 
 /// Thrown when the user is not authenticated (401)
@@ -47,7 +47,7 @@ class NotFoundException extends ApiException {
 /// Thrown when there's a conflict (409)
 class ConflictException extends ApiException {
   ConflictException({String? message, dynamic data})
-    : super(message: message ?? 'A conflict occurred. The resource may already exist.', statusCode: 409, data: data);
+      : super(message: message ?? 'A conflict occurred. The resource may already exist.', statusCode: 409, data: data);
 }
 
 /// Thrown when validation fails (422)
@@ -55,7 +55,7 @@ class ValidationException extends ApiException {
   final Map<String, dynamic>? errors;
 
   ValidationException({String? message, this.errors})
-    : super(message: message ?? 'Validation failed. Please check your input.', statusCode: 422, data: errors);
+      : super(message: message ?? 'Validation failed. Please check your input.', statusCode: 422, data: errors);
 }
 
 /// Thrown when the server encounters an error (500)
@@ -66,7 +66,7 @@ class ServerException extends ApiException {
 /// Thrown when the service is unavailable (503)
 class ServiceUnavailableException extends ApiException {
   ServiceUnavailableException({String? message})
-    : super(message: message ?? 'Service temporarily unavailable. Please try again later.', statusCode: 503);
+      : super(message: message ?? 'Service temporarily unavailable. Please try again later.', statusCode: 503);
 }
 
 /// Thrown for unknown/unexpected errors

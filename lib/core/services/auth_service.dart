@@ -120,8 +120,9 @@ class AuthService extends GetxService {
         return AuthResult.failure('Failed to sign in');
       }
 
-      // Update online status
+      // Update online status and sync email verification status
       await _updateOnlineStatus(user.uid, true);
+      await _syncEmailVerificationStatus(user);
 
       // Fetch and save user data
       final userData = await _firestoreService.getById(
@@ -369,6 +370,29 @@ class AuthService extends GetxService {
     } catch (e) {
       debugPrint('Failed to update online status: $e');
     }
+  }
+
+  /// Sync email verification status from Firebase Auth to Firestore
+  Future<void> _syncEmailVerificationStatus(User user) async {
+    try {
+      await user.reload();
+      final isEmailVerified = user.emailVerified;
+      await _firestoreService.update(
+        collection: FirebaseConstants.usersCollection,
+        documentId: user.uid,
+        data: {
+          FirebaseConstants.fieldIsEmailVerified: isEmailVerified,
+        },
+      );
+    } catch (e) {
+      debugPrint('Failed to sync email verification status: $e');
+    }
+  }
+
+  /// Check if user's email is verified (from Firestore)
+  Future<bool> isUserEmailVerifiedInFirestore() async {
+    final userData = await getCurrentUserData();
+    return userData?[FirebaseConstants.fieldIsEmailVerified] == true;
   }
 
   String _getAuthErrorMessage(String code) {

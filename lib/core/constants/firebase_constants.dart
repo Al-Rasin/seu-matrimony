@@ -69,6 +69,7 @@ class FirebaseConstants {
   static const String fieldProfileFor = 'profileFor';
   static const String fieldRole = 'role';
   static const String fieldIsVerified = 'isVerified';
+  static const String fieldIsEmailVerified = 'isEmailVerified';
   static const String fieldIsOnline = 'isOnline';
   static const String fieldLastSeen = 'lastSeen';
   static const String fieldProfileCompletion = 'profileCompletion';

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../data/models/match_model.dart';
 import '../../data/models/paginated_response.dart';
 import '../../data/repositories/match_repository.dart';
+import '../../data/repositories/auth_repository.dart';
 import 'dart:async';
 
 /// Filter tab options
@@ -10,6 +11,7 @@ enum MatchTab { all, matchPreference, saved, sentInterests, receivedInterests }
 
 class MatchesController extends GetxController {
   final MatchRepository _matchRepository = Get.find<MatchRepository>();
+  final AuthRepository _authRepository = Get.find<AuthRepository>();
 
   // Matches list
   final matches = <MatchModel>[].obs;
@@ -210,6 +212,8 @@ class MatchesController extends GetxController {
 
   /// Send interest to a match
   Future<void> sendInterest(String matchId) async {
+    if (!_checkAdminVerification()) return;
+
     try {
       final success = await _matchRepository.sendInterest(matchId);
       if (success) {
@@ -246,6 +250,8 @@ class MatchesController extends GetxController {
 
   /// Toggle shortlist
   Future<void> toggleShortlist(String matchId) async {
+    if (!_checkAdminVerification()) return;
+
     final index = matches.indexWhere((m) => m.id == matchId);
     if (index == -1) return;
 
@@ -279,6 +285,8 @@ class MatchesController extends GetxController {
 
   /// Accept interest
   Future<void> acceptInterest(String matchId) async {
+    if (!_checkAdminVerification()) return;
+
     try {
       final success = await _matchRepository.acceptInterest(matchId);
       if (success) {
@@ -307,6 +315,8 @@ class MatchesController extends GetxController {
 
   /// Reject interest
   Future<void> rejectInterest(String matchId) async {
+    if (!_checkAdminVerification()) return;
+
     try {
       final success = await _matchRepository.rejectInterest(matchId);
       if (success) {
@@ -334,6 +344,22 @@ class MatchesController extends GetxController {
   /// Navigate to filters screen
   void openFilters() {
     Get.toNamed('/filters', arguments: {'currentFilter': currentFilter.value});
+  }
+
+  /// Check if user is verified by admin
+  bool _checkAdminVerification() {
+    if (!_authRepository.isCurrentUserAdminVerified) {
+      Get.snackbar(
+        'Account Not Verified',
+        'Your account is pending verification by admin. You can complete your profile while waiting.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+      return false;
+    }
+    return true;
   }
 
   /// Get tab display name

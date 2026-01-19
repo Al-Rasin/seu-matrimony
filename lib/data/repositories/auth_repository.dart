@@ -250,11 +250,23 @@ class AuthRepository {
     return _storageService.isProfileComplete;
   }
 
-  /// Check if email is verified
+  /// Check if email is verified (from Firebase Auth)
   Future<bool> isEmailVerified() async {
     if (useFirebase) {
       return await authService.isEmailVerified();
     }
     return true; // Mock: always verified
   }
+
+  /// Check if user is verified by admin
+  Future<bool> isAdminVerified() async {
+    if (useFirebase) {
+      final userData = await authService.getCurrentUserData();
+      return userData?['isVerified'] == true;
+    }
+    return true; // Mock: always verified
+  }
+
+  /// Get current user's admin verification status
+  bool get isCurrentUserAdminVerified => _currentUser?.isVerified ?? false;
 }
