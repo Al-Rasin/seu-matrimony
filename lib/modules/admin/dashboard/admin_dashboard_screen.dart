@@ -6,13 +6,11 @@ import '../../../app/themes/app_text_styles.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../data/repositories/auth_repository.dart';
 
-class AdminDashboardScreen extends StatelessWidget {
+class AdminDashboardScreen extends GetView<AdminDashboardController> {
   const AdminDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(AdminDashboardController());
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Dashboard'),

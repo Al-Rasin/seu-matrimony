@@ -8,6 +8,7 @@ import '../bindings/home_binding.dart';
 import '../bindings/matches_binding.dart';
 import '../bindings/chat_binding.dart';
 import '../bindings/profile_binding.dart';
+import '../bindings/admin_binding.dart';
 
 // Screens - will be added as we implement them
 import '../../modules/splash/splash_screen.dart';
@@ -37,6 +38,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.adminDashboard,
       page: () => const AdminDashboardScreen(),
+      binding: AdminBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(
