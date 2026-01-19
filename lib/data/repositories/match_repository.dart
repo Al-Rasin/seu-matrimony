@@ -42,97 +42,57 @@ class MatchRepository {
       return _getMockMatches(page: page, perPage: perPage, filter: filter);
     }
 
-    // Build Firestore query
-    final filters = <QueryFilter>[];
-
-    // Exclude current user
-    if (currentUserId != null) {
-      filters.add(QueryFilter(
-        field: 'id',
-        operator: QueryOperator.isNotEqualTo,
-        value: currentUserId,
-      ));
-    }
-
-    // Apply filters
-    if (filter != null) {
-      if (filter.gender != null && filter.gender!.isNotEmpty) {
-        filters.add(QueryFilter(
-          field: FirebaseConstants.fieldGender,
-          operator: QueryOperator.isEqualTo,
-          value: filter.gender,
-        ));
-      }
-      if (filter.department != null && filter.department!.isNotEmpty) {
-        filters.add(QueryFilter(
-          field: FirebaseConstants.fieldDepartment,
-          operator: QueryOperator.isEqualTo,
-          value: filter.department,
-        ));
-      }
-      if (filter.religion != null && filter.religion!.isNotEmpty) {
-        filters.add(QueryFilter(
-          field: FirebaseConstants.fieldReligion,
-          operator: QueryOperator.isEqualTo,
-          value: filter.religion,
-        ));
-      }
-      if (filter.maritalStatus != null && filter.maritalStatus!.isNotEmpty) {
-        filters.add(QueryFilter(
-          field: FirebaseConstants.fieldMaritalStatus,
-          operator: QueryOperator.isEqualTo,
-          value: filter.maritalStatus,
-        ));
-      }
-      if (filter.city != null && filter.city!.isNotEmpty) {
-        filters.add(QueryFilter(
-          field: FirebaseConstants.fieldCurrentCity,
-          operator: QueryOperator.isEqualTo,
-          value: filter.city,
-        ));
-      }
-      if (filter.familyType != null && filter.familyType!.isNotEmpty) {
-        filters.add(QueryFilter(
-          field: 'familyType',
-          operator: QueryOperator.isEqualTo,
-          value: filter.familyType,
-        ));
-      }
-      if (filter.verifiedOnly == true) {
-        filters.add(QueryFilter(
-          field: FirebaseConstants.fieldIsVerified,
-          operator: QueryOperator.isEqualTo,
-          value: true,
-        ));
-      }
-    }
-
-    final results = await firestoreService.query(
+    // Fetch all active users and filter in memory to avoid complex index requirements
+    // This is simpler and works without composite indexes
+    final results = await firestoreService.getAll(
       collection: FirebaseConstants.usersCollection,
-      filters: filters,
-      limit: perPage,
-      orderBy: FirebaseConstants.fieldCreatedAt,
-      descending: true,
+      limit: 200, // Reasonable limit for a matrimony app
     );
 
-    // Filter by age and height in memory (Firestore limitations)
-    var matches = results.map((data) => MatchModel.fromFirestore(data)).toList();
+    // Convert to MatchModel and filter
+    var matches = results
+        .where((data) => data['id'] != currentUserId) // Exclude current user
+        .where((data) => data['profileStatus'] == 'active') // Only active profiles
+        .map((data) => MatchModel.fromFirestore(data))
+        .toList();
 
+    // Apply filters in memory
     if (filter != null) {
+      matches = matches.where((m) {
+        if (filter.gender != null && filter.gender!.isNotEmpty && m.gender?.toLowerCase() != filter.gender!.toLowerCase()) return false;
+        if (filter.department != null && filter.department!.isNotEmpty && m.department != filter.department) return false;
+        if (filter.religion != null && filter.religion!.isNotEmpty && m.religion != filter.religion) return false;
+        if (filter.maritalStatus != null && filter.maritalStatus!.isNotEmpty && m.maritalStatus != filter.maritalStatus) return false;
+        if (filter.city != null && filter.city!.isNotEmpty && m.currentCity != filter.city) return false;
+        if (filter.verifiedOnly == true && !m.isVerified) return false;
+        return true;
+      }).toList();
+
       matches = _applyLocalFilters(matches, filter);
     }
+
+    // Sort by lastSeen/online status (online users first, then by lastSeen)
+    matches.sort((a, b) {
+      if (a.isOnline && !b.isOnline) return -1;
+      if (!a.isOnline && b.isOnline) return 1;
+      return (b.lastSeen ?? DateTime(2000)).compareTo(a.lastSeen ?? DateTime(2000));
+    });
 
     // Get shortlist and interest status for each match
     matches = await _enrichMatchesWithStatus(matches);
 
+    // Paginate
+    final startIndex = (page - 1) * perPage;
+    final paginatedMatches = matches.skip(startIndex).take(perPage).toList();
+
     return PaginatedResponse(
-      items: matches,
+      items: paginatedMatches,
       pagination: PaginationMeta(
         currentPage: page,
         lastPage: (matches.length / perPage).ceil().clamp(1, 100),
         perPage: perPage,
         total: matches.length,
-        hasMorePages: matches.length >= perPage,
+        hasMorePages: startIndex + perPage < matches.length,
       ),
     );
   }
@@ -146,37 +106,40 @@ class MatchRepository {
       return _getMockMatches(page: page, perPage: perPage, recommended: true);
     }
 
-    // For recommendations, we could implement a matching algorithm
-    // For now, just return verified users
-    final results = await firestoreService.query(
+    // Fetch all users and filter in memory to avoid index requirements
+    final results = await firestoreService.getAll(
       collection: FirebaseConstants.usersCollection,
-      filters: [
-        QueryFilter(
-          field: FirebaseConstants.fieldIsVerified,
-          operator: QueryOperator.isEqualTo,
-          value: true,
-        ),
-      ],
-      limit: perPage,
-      orderBy: FirebaseConstants.fieldCreatedAt,
-      descending: true,
+      limit: 200,
     );
 
     var matches = results
         .where((data) => data['id'] != currentUserId)
+        .where((data) => data['isVerified'] == true)
+        .where((data) => data['profileStatus'] == 'active')
         .map((data) => MatchModel.fromFirestore(data))
         .toList();
 
+    // Sort: online first, then by verification
+    matches.sort((a, b) {
+      if (a.isOnline && !b.isOnline) return -1;
+      if (!a.isOnline && b.isOnline) return 1;
+      return 0;
+    });
+
     matches = await _enrichMatchesWithStatus(matches);
 
+    // Paginate
+    final startIndex = (page - 1) * perPage;
+    final paginatedMatches = matches.skip(startIndex).take(perPage).toList();
+
     return PaginatedResponse(
-      items: matches,
+      items: paginatedMatches,
       pagination: PaginationMeta(
         currentPage: page,
-        lastPage: 1,
+        lastPage: (matches.length / perPage).ceil().clamp(1, 100),
         perPage: perPage,
         total: matches.length,
-        hasMorePages: matches.length >= perPage,
+        hasMorePages: startIndex + perPage < matches.length,
       ),
     );
   }
@@ -190,28 +153,32 @@ class MatchRepository {
       return _getMockMatches(page: page, perPage: perPage, newlyJoined: true);
     }
 
-    final results = await firestoreService.query(
+    // Simple query without complex filtering
+    final results = await firestoreService.getAll(
       collection: FirebaseConstants.usersCollection,
-      limit: perPage,
-      orderBy: FirebaseConstants.fieldCreatedAt,
-      descending: true,
+      limit: 100,
     );
 
     var matches = results
         .where((data) => data['id'] != currentUserId)
+        .where((data) => data['profileStatus'] == 'active')
         .map((data) => MatchModel.fromFirestore(data))
         .toList();
 
     matches = await _enrichMatchesWithStatus(matches);
 
+    // Paginate
+    final startIndex = (page - 1) * perPage;
+    final paginatedMatches = matches.skip(startIndex).take(perPage).toList();
+
     return PaginatedResponse(
-      items: matches,
+      items: paginatedMatches,
       pagination: PaginationMeta(
         currentPage: page,
-        lastPage: 1,
+        lastPage: (matches.length / perPage).ceil().clamp(1, 100),
         perPage: perPage,
         total: matches.length,
-        hasMorePages: matches.length >= perPage,
+        hasMorePages: startIndex + perPage < matches.length,
       ),
     );
   }

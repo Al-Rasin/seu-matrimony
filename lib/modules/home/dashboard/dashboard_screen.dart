@@ -314,12 +314,8 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: match.profilePhoto != null
-                          ? Image.memory(
-                              Uri.parse(match.profilePhoto!).data!.contentAsBytes(),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                            )
+                      child: match.profilePhoto != null && match.profilePhoto!.isNotEmpty
+                          ? _buildProfileImage(match.profilePhoto!)
                           : _buildPlaceholder(),
                     ),
                     // Online indicator
@@ -381,6 +377,28 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProfileImage(String photoUrl) {
+    if (photoUrl.startsWith('data:')) {
+      try {
+        final uri = Uri.parse(photoUrl);
+        if (uri.data != null) {
+          return Image.memory(
+            uri.data!.contentAsBytes(),
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _buildPlaceholder(),
+          );
+        }
+      } catch (e) {
+        return _buildPlaceholder();
+      }
+    }
+    return Image.network(
+      photoUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _buildPlaceholder(),
     );
   }
 

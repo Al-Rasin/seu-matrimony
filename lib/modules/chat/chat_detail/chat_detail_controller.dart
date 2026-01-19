@@ -108,9 +108,10 @@ class ChatDetailController extends GetxController {
     await _chatRepository.markAsRead(conversationId!);
   }
 
-  /// Check if user is verified by admin
-  bool _checkAdminVerification() {
-    if (!_authRepository.isCurrentUserAdminVerified) {
+  /// Check if user is verified by admin (fetches fresh data from Firestore)
+  Future<bool> _checkAdminVerification() async {
+    final isVerified = await _authRepository.isAdminVerified();
+    if (!isVerified) {
       Get.snackbar(
         'Account Not Verified',
         'Your account is pending verification by admin. You can complete your profile while waiting.',
@@ -126,7 +127,7 @@ class ChatDetailController extends GetxController {
 
   Future<void> sendMessage() async {
     if (conversationId == null || messageController.text.trim().isEmpty) return;
-    if (!_checkAdminVerification()) return;
+    if (!await _checkAdminVerification()) return;
 
     try {
       final content = messageController.text.trim();

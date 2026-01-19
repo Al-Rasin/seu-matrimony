@@ -190,17 +190,12 @@ class MatchesScreen extends StatelessWidget {
                       top: Radius.circular(16),
                     ),
                   ),
-                  child: match.profilePhoto != null
+                  child: match.profilePhoto != null && match.profilePhoto!.isNotEmpty
                       ? ClipRRect(
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(16),
                           ),
-                          child: Image.memory(
-                            Uri.parse(match.profilePhoto!).data!.contentAsBytes(),
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
-                          ),
+                          child: _buildProfileImage(match.profilePhoto!),
                         )
                       : _buildPlaceholderImage(),
                 ),
@@ -325,12 +320,10 @@ class MatchesScreen extends StatelessWidget {
                       ],
                       if (match.currentCity != null) ...[
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildInfoChip(
-                            Icons.location_on,
-                            match.currentCity!,
-                            overflow: true,
-                          ),
+                        _buildInfoChip(
+                          Icons.location_on,
+                          match.currentCity!,
+                          overflow: true,
                         ),
                       ],
                     ],
@@ -358,6 +351,44 @@ class MatchesScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProfileImage(String photoUrl) {
+    // Check if it's a data URI (base64) or a network URL
+    if (photoUrl.startsWith('data:')) {
+      try {
+        final uri = Uri.parse(photoUrl);
+        if (uri.data != null) {
+          return Image.memory(
+            uri.data!.contentAsBytes(),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+          );
+        }
+      } catch (e) {
+        return _buildPlaceholderImage();
+      }
+    }
+
+    // Network URL
+    return Image.network(
+      photoUrl,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded /
+                    loadingProgress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
     );
   }
 

@@ -212,7 +212,7 @@ class MatchesController extends GetxController {
 
   /// Send interest to a match
   Future<void> sendInterest(String matchId) async {
-    if (!_checkAdminVerification()) return;
+    if (!await _checkAdminVerification()) return;
 
     try {
       final success = await _matchRepository.sendInterest(matchId);
@@ -250,7 +250,7 @@ class MatchesController extends GetxController {
 
   /// Toggle shortlist
   Future<void> toggleShortlist(String matchId) async {
-    if (!_checkAdminVerification()) return;
+    if (!await _checkAdminVerification()) return;
 
     final index = matches.indexWhere((m) => m.id == matchId);
     if (index == -1) return;
@@ -285,7 +285,7 @@ class MatchesController extends GetxController {
 
   /// Accept interest
   Future<void> acceptInterest(String matchId) async {
-    if (!_checkAdminVerification()) return;
+    if (!await _checkAdminVerification()) return;
 
     try {
       final success = await _matchRepository.acceptInterest(matchId);
@@ -315,7 +315,7 @@ class MatchesController extends GetxController {
 
   /// Reject interest
   Future<void> rejectInterest(String matchId) async {
-    if (!_checkAdminVerification()) return;
+    if (!await _checkAdminVerification()) return;
 
     try {
       final success = await _matchRepository.rejectInterest(matchId);
@@ -346,9 +346,10 @@ class MatchesController extends GetxController {
     Get.toNamed('/filters', arguments: {'currentFilter': currentFilter.value});
   }
 
-  /// Check if user is verified by admin
-  bool _checkAdminVerification() {
-    if (!_authRepository.isCurrentUserAdminVerified) {
+  /// Check if user is verified by admin (fetches fresh data from Firestore)
+  Future<bool> _checkAdminVerification() async {
+    final isVerified = await _authRepository.isAdminVerified();
+    if (!isVerified) {
       Get.snackbar(
         'Account Not Verified',
         'Your account is pending verification by admin. You can complete your profile while waiting.',

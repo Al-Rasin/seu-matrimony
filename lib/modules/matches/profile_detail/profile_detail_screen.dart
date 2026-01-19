@@ -202,18 +202,45 @@ class ProfileDetailScreen extends StatelessWidget {
   }
 
   Widget _buildProfileImage(MatchModel profile) {
-    if (profile.profilePhoto != null) {
+    if (profile.profilePhoto == null || profile.profilePhoto!.isEmpty) {
+      return _buildPlaceholderImage();
+    }
+
+    final photoUrl = profile.profilePhoto!;
+
+    // Handle data URI (base64)
+    if (photoUrl.startsWith('data:')) {
       try {
-        return Image.memory(
-          Uri.parse(profile.profilePhoto!).data!.contentAsBytes(),
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
-        );
+        final uri = Uri.parse(photoUrl);
+        if (uri.data != null) {
+          return Image.memory(
+            uri.data!.contentAsBytes(),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+          );
+        }
       } catch (_) {
         return _buildPlaceholderImage();
       }
     }
-    return _buildPlaceholderImage();
+
+    // Handle network URL
+    return Image.network(
+      photoUrl,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded /
+                    loadingProgress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+    );
   }
 
   Widget _buildPlaceholderImage() {
