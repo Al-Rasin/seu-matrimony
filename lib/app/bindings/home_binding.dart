@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/user_repository.dart';
 import '../../data/repositories/match_repository.dart';
 import '../../data/repositories/interest_repository.dart';
@@ -11,6 +12,7 @@ class HomeBinding extends Bindings {
   @override
   void dependencies() {
     // Repositories
+    Get.lazyPut<AuthRepository>(() => AuthRepository());
     Get.lazyPut<UserRepository>(() => UserRepository());
     Get.lazyPut<MatchRepository>(() => MatchRepository());
     Get.lazyPut<InterestRepository>(() => InterestRepository());
