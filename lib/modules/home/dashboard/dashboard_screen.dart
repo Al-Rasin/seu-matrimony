@@ -31,8 +31,8 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Verification pending banner
-              Obx(() => !controller.isAdminVerified.value
+              // Verification pending banner (only show after data is loaded)
+              Obx(() => !controller.isLoading.value && !controller.isAdminVerified.value
                   ? _buildVerificationPendingBanner()
                   : const SizedBox.shrink()),
               // Welcome section
@@ -46,23 +46,9 @@ class DashboardScreen extends StatelessWidget {
                     controller.userName.value,
                     style: AppTextStyles.h3,
                   )),
-              const SizedBox(height: 16),
-              // Search bar
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search by criteria',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.grey.shade100,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
               const SizedBox(height: 20),
-              // Profile completion card
-              Obx(() => controller.profileCompletion.value < 100
+              // Profile completion card (only show after data is loaded)
+              Obx(() => !controller.isLoading.value && controller.profileCompletion.value < 100
                   ? _buildProfileCompletionCard(controller)
                   : const SizedBox.shrink()),
               const SizedBox(height: 20),
