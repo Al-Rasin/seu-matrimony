@@ -16,6 +16,7 @@ class MatchModel {
   final String? occupation;
   final String? currentCity;
   final String? bio;
+  final String? familyType;
   final int profileCompletionPercentage;
   final bool isVerified;
   final bool isOnline;
@@ -39,6 +40,7 @@ class MatchModel {
     this.occupation,
     this.currentCity,
     this.bio,
+    this.familyType,
     this.profileCompletionPercentage = 0,
     this.isVerified = false,
     this.isOnline = false,
@@ -66,6 +68,7 @@ class MatchModel {
       occupation: json['occupation']?.toString(),
       currentCity: json['current_city']?.toString() ?? json['currentCity']?.toString(),
       bio: json['bio']?.toString(),
+      familyType: json['family_type']?.toString() ?? json['familyType']?.toString(),
       profileCompletionPercentage: json['profile_completion_percentage'] is int
           ? json['profile_completion_percentage']
           : int.tryParse(json['profile_completion_percentage']?.toString() ?? '0') ?? 0,
@@ -111,6 +114,7 @@ class MatchModel {
       occupation: data['occupation']?.toString(),
       currentCity: data['currentCity']?.toString(),
       bio: data['about']?.toString() ?? data['bio']?.toString(),
+      familyType: data['familyType']?.toString(),
       profileCompletionPercentage: data['profileCompletion'] is int
           ? data['profileCompletion']
           : int.tryParse(data['profileCompletion']?.toString() ?? '0') ?? 0,
@@ -139,6 +143,7 @@ class MatchModel {
       'occupation': occupation,
       'current_city': currentCity,
       'bio': bio,
+      'family_type': familyType,
       'profile_completion_percentage': profileCompletionPercentage,
       'is_verified': isVerified,
       'is_online': isOnline,
@@ -192,6 +197,7 @@ class MatchModel {
     String? occupation,
     String? currentCity,
     String? bio,
+    String? familyType,
     int? profileCompletionPercentage,
     bool? isVerified,
     bool? isOnline,
@@ -215,6 +221,7 @@ class MatchModel {
       occupation: occupation ?? this.occupation,
       currentCity: currentCity ?? this.currentCity,
       bio: bio ?? this.bio,
+      familyType: familyType ?? this.familyType,
       profileCompletionPercentage: profileCompletionPercentage ?? this.profileCompletionPercentage,
       isVerified: isVerified ?? this.isVerified,
       isOnline: isOnline ?? this.isOnline,

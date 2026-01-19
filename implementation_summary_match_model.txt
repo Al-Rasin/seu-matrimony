@@ -1,0 +1,11 @@
+Feature Update: MatchModel and Profile Detail
+
+1.  **Model Updated**: `MatchModel` (`lib/data/models/match_model.dart`) now includes `familyType`.
+    -   Updated constructor, `fromJson`, `fromFirestore`, `toJson`, and `copyWith`.
+    -   Fixed a regression where fields (`isOnline`, etc.) were accidentally removed.
+
+2.  **UI Updated**: `ProfileDetailScreen` (`lib/modules/matches/profile_detail/profile_detail_screen.dart`) now displays "Family Type" in the Basic Details section.
+
+**Verification**:
+-   Build successful.
+-   Data consistency ensured across Registration, Edit Profile, and Profile View.

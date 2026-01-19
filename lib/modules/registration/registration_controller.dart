@@ -26,6 +26,7 @@ class RegistrationController extends GetxController {
   final religion = Rxn<String>();
   final studentIdController = TextEditingController();
   final isCurrentlyStudying = false.obs;
+  final familyType = Rxn<String>();
 
   // Step 3: Professional Details
   final highestEducation = Rxn<String>();
@@ -101,6 +102,7 @@ class RegistrationController extends GetxController {
             FirebaseConstants.fieldReligion: religion.value,
             FirebaseConstants.fieldStudentId: studentIdController.text,
             FirebaseConstants.fieldCurrentlyStudying: isCurrentlyStudying.value,
+            'familyType': familyType.value,
           });
           break;
         case 2:

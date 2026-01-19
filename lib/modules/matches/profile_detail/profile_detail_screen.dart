@@ -151,6 +151,7 @@ class ProfileDetailScreen extends StatelessWidget {
                           _buildDetailRow('Height', profile.displayHeight ?? 'Not specified'),
                           _buildDetailRow('Religion', profile.religion ?? 'Not specified'),
                           _buildDetailRow('Marital Status', profile.maritalStatus ?? 'Not specified'),
+                          _buildDetailRow('Family Type', profile.familyType ?? 'Not specified'),
                           _buildDetailRow('Department', profile.department ?? 'Not specified'),
                         ],
                       ),

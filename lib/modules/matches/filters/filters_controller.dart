@@ -15,6 +15,7 @@ class FiltersController extends GetxController {
   final selectedEducation = ''.obs;
   final selectedCity = ''.obs;
   final selectedDepartment = ''.obs;
+  final selectedFamilyType = ''.obs;
 
   // Toggle filters
   final verifiedOnly = false.obs;
@@ -37,6 +38,13 @@ class FiltersController extends GetxController {
     'Divorced',
     'Widowed',
     'Awaiting Divorce',
+  ];
+
+  final familyTypes = [
+    '',
+    'Nuclear',
+    'Joint',
+    'Other',
   ];
 
   final educationLevels = [
@@ -96,6 +104,7 @@ class FiltersController extends GetxController {
       if (currentFilter.education != null) selectedEducation.value = currentFilter.education!;
       if (currentFilter.city != null) selectedCity.value = currentFilter.city!;
       if (currentFilter.department != null) selectedDepartment.value = currentFilter.department!;
+      if (currentFilter.familyType != null) selectedFamilyType.value = currentFilter.familyType!;
       if (currentFilter.verifiedOnly != null) verifiedOnly.value = currentFilter.verifiedOnly!;
       if (currentFilter.withPhotoOnly != null) withPhotoOnly.value = currentFilter.withPhotoOnly!;
       if (currentFilter.onlineOnly != null) onlineOnly.value = currentFilter.onlineOnly!;
@@ -112,6 +121,7 @@ class FiltersController extends GetxController {
     selectedEducation.value = '';
     selectedCity.value = '';
     selectedDepartment.value = '';
+    selectedFamilyType.value = '';
     verifiedOnly.value = false;
     withPhotoOnly.value = false;
     onlineOnly.value = false;
@@ -128,6 +138,7 @@ class FiltersController extends GetxController {
       education: selectedEducation.value.isNotEmpty ? selectedEducation.value : null,
       city: selectedCity.value.isNotEmpty ? selectedCity.value : null,
       department: selectedDepartment.value.isNotEmpty ? selectedDepartment.value : null,
+      familyType: selectedFamilyType.value.isNotEmpty ? selectedFamilyType.value : null,
       verifiedOnly: verifiedOnly.value ? true : null,
       withPhotoOnly: withPhotoOnly.value ? true : null,
       onlineOnly: onlineOnly.value ? true : null,
@@ -149,6 +160,7 @@ class FiltersController extends GetxController {
         selectedEducation.value.isNotEmpty ||
         selectedCity.value.isNotEmpty ||
         selectedDepartment.value.isNotEmpty ||
+        selectedFamilyType.value.isNotEmpty ||
         verifiedOnly.value ||
         withPhotoOnly.value ||
         onlineOnly.value;
@@ -163,6 +175,7 @@ class FiltersController extends GetxController {
     if (selectedEducation.value.isNotEmpty) count++;
     if (selectedCity.value.isNotEmpty) count++;
     if (selectedDepartment.value.isNotEmpty) count++;
+    if (selectedFamilyType.value.isNotEmpty) count++;
     if (verifiedOnly.value) count++;
     if (withPhotoOnly.value) count++;
     if (onlineOnly.value) count++;

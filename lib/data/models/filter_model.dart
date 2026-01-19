@@ -11,6 +11,7 @@ class MatchFilter {
   final String? city;
   final String? occupation;
   final String? department;
+  final String? familyType;
   final bool? verifiedOnly;
   final bool? withPhotoOnly;
   final bool? onlineOnly;
@@ -27,6 +28,7 @@ class MatchFilter {
     this.city,
     this.occupation,
     this.department,
+    this.familyType,
     this.verifiedOnly,
     this.withPhotoOnly,
     this.onlineOnly,
@@ -46,6 +48,7 @@ class MatchFilter {
       if (city != null && city!.isNotEmpty) 'city': city,
       if (occupation != null && occupation!.isNotEmpty) 'occupation': occupation,
       if (department != null && department!.isNotEmpty) 'department': department,
+      if (familyType != null && familyType!.isNotEmpty) 'family_type': familyType,
       if (verifiedOnly == true) 'verified_only': true,
       if (withPhotoOnly == true) 'with_photo_only': true,
       if (onlineOnly == true) 'online_only': true,
@@ -66,6 +69,7 @@ class MatchFilter {
       city: params['city'] as String?,
       occupation: params['occupation'] as String?,
       department: params['department'] as String?,
+      familyType: params['family_type'] as String?,
       verifiedOnly: params['verified_only'] as bool?,
       withPhotoOnly: params['with_photo_only'] as bool?,
       onlineOnly: params['online_only'] as bool?,
@@ -85,6 +89,7 @@ class MatchFilter {
     String? city,
     String? occupation,
     String? department,
+    String? familyType,
     bool? verifiedOnly,
     bool? withPhotoOnly,
     bool? onlineOnly,
@@ -101,6 +106,7 @@ class MatchFilter {
       city: city ?? this.city,
       occupation: occupation ?? this.occupation,
       department: department ?? this.department,
+      familyType: familyType ?? this.familyType,
       verifiedOnly: verifiedOnly ?? this.verifiedOnly,
       withPhotoOnly: withPhotoOnly ?? this.withPhotoOnly,
       onlineOnly: onlineOnly ?? this.onlineOnly,
@@ -120,6 +126,7 @@ class MatchFilter {
         (city != null && city!.isNotEmpty) ||
         (occupation != null && occupation!.isNotEmpty) ||
         (department != null && department!.isNotEmpty) ||
+        (familyType != null && familyType!.isNotEmpty) ||
         verifiedOnly == true ||
         withPhotoOnly == true ||
         onlineOnly == true;
@@ -137,6 +144,7 @@ class MatchFilter {
     if (city != null && city!.isNotEmpty) count++;
     if (occupation != null && occupation!.isNotEmpty) count++;
     if (department != null && department!.isNotEmpty) count++;
+    if (familyType != null && familyType!.isNotEmpty) count++;
     if (verifiedOnly == true) count++;
     if (withPhotoOnly == true) count++;
     if (onlineOnly == true) count++;
@@ -150,7 +158,7 @@ class MatchFilter {
   String toString() {
     return 'MatchFilter(gender: $gender, age: $minAge-$maxAge, height: $minHeight-$maxHeight, '
         'religion: $religion, status: $maritalStatus, edu: $education, '
-        'city: $city, dept: $department)';
+        'city: $city, dept: $department, familyType: $familyType)';
   }
 
   @override
@@ -168,6 +176,7 @@ class MatchFilter {
         other.city == city &&
         other.occupation == occupation &&
         other.department == department &&
+        other.familyType == familyType &&
         other.verifiedOnly == verifiedOnly &&
         other.withPhotoOnly == withPhotoOnly &&
         other.onlineOnly == onlineOnly;
@@ -187,6 +196,7 @@ class MatchFilter {
       city,
       occupation,
       department,
+      familyType,
       verifiedOnly,
       withPhotoOnly,
       onlineOnly,

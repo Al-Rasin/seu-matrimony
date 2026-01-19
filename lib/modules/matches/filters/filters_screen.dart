@@ -127,6 +127,17 @@ class FiltersScreen extends StatelessWidget {
                 )),
             const SizedBox(height: 16),
 
+            // Family Type
+            _buildSectionTitle('Family Type'),
+            const SizedBox(height: 8),
+            Obx(() => _buildDropdownField(
+                  value: controller.selectedFamilyType.value,
+                  items: controller.familyTypes,
+                  hint: 'Select Family Type',
+                  onChanged: (value) => controller.selectedFamilyType.value = value ?? '',
+                )),
+            const SizedBox(height: 16),
+
             // Education
             _buildSectionTitle('Education'),
             const SizedBox(height: 8),

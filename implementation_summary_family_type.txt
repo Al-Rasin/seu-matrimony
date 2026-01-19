@@ -1,0 +1,17 @@
+Feature Implemented: Family Type in Registration and Edit Profile
+
+1.  **Registration Module**:
+    -   **UI Updated**: Modified `lib/modules/registration/steps/personal_details_step.dart` to include a `SimpleDropdown` for "Family Type" (Nuclear, Joint, Other).
+    -   **Controller Updated**: Modified `lib/modules/registration/registration_controller.dart` to add `familyType` observable and include it in the `updatePersonalDetails` call during step saving.
+
+2.  **Edit Profile Module**:
+    -   **New Screen**: Created `lib/modules/profile/edit_profile/edit_family_details_screen.dart` to allow editing of family details.
+    -   **Controller Updated**: Modified `lib/modules/profile/edit_profile/edit_profile_controller.dart` to:
+        -   Add `familyType` controller.
+        -   Implement `_loadFamilyDetails` to fetch data.
+        -   Implement `saveFamilyDetails` to update data.
+        -   Navigate to the new screen from `editFamilyDetails()`.
+
+**Verification**:
+-   Build successful.
+-   Data flow for `familyType` is established from registration to profile editing.

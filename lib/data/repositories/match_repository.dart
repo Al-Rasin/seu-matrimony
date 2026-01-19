@@ -91,6 +91,13 @@ class MatchRepository {
           value: filter.city,
         ));
       }
+      if (filter.familyType != null && filter.familyType!.isNotEmpty) {
+        filters.add(QueryFilter(
+          field: 'familyType',
+          operator: QueryOperator.isEqualTo,
+          value: filter.familyType,
+        ));
+      }
       if (filter.verifiedOnly == true) {
         filters.add(QueryFilter(
           field: FirebaseConstants.fieldIsVerified,

@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'edit_basic_details_screen.dart';
 import 'edit_personal_details_screen.dart';
 import 'edit_professional_details_screen.dart';
+import 'edit_family_details_screen.dart';
+import 'edit_about_screen.dart';
+import 'edit_partner_preferences_screen.dart';
 
 class EditProfileController extends GetxController {
   final UserRepository _userRepository = Get.find<UserRepository>();
@@ -39,6 +42,19 @@ class EditProfileController extends GetxController {
   final highestEducation = Rxn<String>();
   final workLocationController = TextEditingController();
 
+  // Family Details Controllers
+  final familyType = Rxn<String>();
+
+  // About Controller
+  final bioController = TextEditingController();
+
+  // Partner Preferences Controllers
+  final partnerAgeRange = const RangeValues(18, 30).obs;
+  final partnerMinHeightController = TextEditingController();
+  final partnerMaxHeightController = TextEditingController();
+  final partnerMaritalStatus = Rxn<String>();
+  final partnerReligion = Rxn<String>();
+
   @override
   void onClose() {
     ageController.dispose();
@@ -49,6 +65,9 @@ class EditProfileController extends GetxController {
     studentIdController.dispose();
     occupationController.dispose();
     workLocationController.dispose();
+    bioController.dispose();
+    partnerMinHeightController.dispose();
+    partnerMaxHeightController.dispose();
     super.onClose();
   }
 
@@ -195,12 +214,114 @@ class EditProfileController extends GetxController {
     }
   }
 
-  void editFamilyDetails() {
-    Get.snackbar('Info', 'Edit Family Details coming soon');
+  Future<void> editFamilyDetails() async {
+    await _loadFamilyDetails();
+    Get.to(() => const EditFamilyDetailsScreen());
   }
 
-  void editPreferences() {
-    Get.snackbar('Info', 'Edit Preferences coming soon');
+  Future<void> _loadFamilyDetails() async {
+    try {
+      isLoading.value = true;
+      final user = await _userRepository.getCurrentUser();
+      familyType.value = user['familyType'];
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load family details');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> saveFamilyDetails() async {
+    try {
+      isLoading.value = true;
+      await _userRepository.updateFamilyDetails({
+        'familyType': familyType.value,
+      });
+      Get.back();
+      Get.snackbar('Success', 'Family details updated successfully');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update family details');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> editAbout() async {
+    await _loadAbout();
+    Get.to(() => const EditAboutScreen());
+  }
+
+  Future<void> _loadAbout() async {
+    try {
+      isLoading.value = true;
+      final user = await _userRepository.getCurrentUser();
+      bioController.text = user[FirebaseConstants.fieldAbout] ?? user['bio'] ?? '';
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load about info');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> saveAbout() async {
+    try {
+      isLoading.value = true;
+      await _userRepository.updateAbout({
+        FirebaseConstants.fieldAbout: bioController.text,
+        'bio': bioController.text, // Maintain legacy field
+      });
+      Get.back();
+      Get.snackbar('Success', 'About info updated successfully');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update about info');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> editPreferences() async {
+    await _loadPreferences();
+    Get.to(() => const EditPartnerPreferencesScreen());
+  }
+
+  Future<void> _loadPreferences() async {
+    try {
+      isLoading.value = true;
+      final user = await _userRepository.getCurrentUser();
+      
+      final double minAge = double.tryParse(user['partnerAgeMin']?.toString() ?? '18') ?? 18;
+      final double maxAge = double.tryParse(user['partnerAgeMax']?.toString() ?? '30') ?? 30;
+      partnerAgeRange.value = RangeValues(minAge, maxAge);
+
+      partnerMinHeightController.text = user['partnerMinHeight']?.toString() ?? '';
+      partnerMaxHeightController.text = user['partnerMaxHeight']?.toString() ?? '';
+      partnerMaritalStatus.value = user['partnerMaritalStatus'];
+      partnerReligion.value = user['partnerReligion'];
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load preferences');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> savePreferences() async {
+    try {
+      isLoading.value = true;
+      await _userRepository.updatePreferences({
+        'partnerAgeMin': partnerAgeRange.value.start.round(),
+        'partnerAgeMax': partnerAgeRange.value.end.round(),
+        'partnerMinHeight': double.tryParse(partnerMinHeightController.text) ?? 0,
+        'partnerMaxHeight': double.tryParse(partnerMaxHeightController.text) ?? 0,
+        'partnerMaritalStatus': partnerMaritalStatus.value,
+        'partnerReligion': partnerReligion.value,
+      });
+      Get.back();
+      Get.snackbar('Success', 'Preferences updated successfully');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update preferences');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> editPhotos() async {

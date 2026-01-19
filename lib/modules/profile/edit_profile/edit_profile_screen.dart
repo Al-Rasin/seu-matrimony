@@ -25,6 +25,7 @@ class EditProfileScreen extends StatelessWidget {
                 () => controller.editProfessionalDetails()),
             _buildSection(
                 'Family Details', () => controller.editFamilyDetails()),
+            _buildSection('About Yourself', () => controller.editAbout()),
             _buildSection(
                 'Partner Preferences', () => controller.editPreferences()),
             _buildSection('Photos', () => controller.editPhotos()),
