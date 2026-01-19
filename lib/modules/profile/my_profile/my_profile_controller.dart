@@ -10,6 +10,10 @@ class MyProfileController extends GetxController {
   final userName = ''.obs;
   final userEmail = ''.obs;
   final profilePhotoUrl = ''.obs;
+  
+  final userAge = ''.obs;
+  final userGender = ''.obs;
+  final userDepartment = ''.obs;
 
   @override
   void onInit() {
@@ -23,6 +27,10 @@ class MyProfileController extends GetxController {
       userName.value = user['fullName'] ?? 'User';
       userEmail.value = user['email'] ?? '';
       profilePhotoUrl.value = user['profilePhotoUrl'] ?? '';
+      
+      userAge.value = user['age']?.toString() ?? '';
+      userGender.value = user['gender'] ?? '';
+      userDepartment.value = user['department'] ?? '';
     } catch (e) {
       // Handle error
     }

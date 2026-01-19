@@ -60,6 +60,30 @@ class MyProfileScreen extends StatelessWidget {
                   controller.userEmail.value,
                   style: AppTextStyles.bodySmall,
                 )),
+            const SizedBox(height: 8),
+            Obx(() {
+              final details = [
+                if (controller.userAge.value.isNotEmpty) '${controller.userAge.value} yrs',
+                if (controller.userGender.value.isNotEmpty) controller.userGender.value,
+                if (controller.userDepartment.value.isNotEmpty) controller.userDepartment.value,
+              ];
+              if (details.isEmpty) return const SizedBox.shrink();
+              
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  details.join(' • '),
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }),
             const SizedBox(height: 24),
             // Profile options
             _buildOption(
