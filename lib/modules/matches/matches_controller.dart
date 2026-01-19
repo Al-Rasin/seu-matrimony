@@ -243,6 +243,47 @@ class MatchesController extends GetxController {
     }
   }
 
+  /// Cancel/unsend interest
+  Future<void> cancelInterest(String matchId) async {
+    if (!await _checkAdminVerification()) return;
+
+    try {
+      final success = await _matchRepository.cancelInterest(matchId);
+      if (success) {
+        // Update local state
+        final index = matches.indexWhere((m) => m.id == matchId);
+        if (index != -1) {
+          matches[index] = matches[index].copyWith(
+            interestStatus: InterestStatus.none,
+          );
+        }
+        Get.snackbar(
+          'Success',
+          'Interest cancelled',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        Get.snackbar(
+          'Error',
+          'Interest not found',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to cancel interest: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   /// Skip/decline a match (just removes from view)
   void skipMatch(String matchId) {
     matches.removeWhere((m) => m.id == matchId);

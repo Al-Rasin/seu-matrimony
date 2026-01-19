@@ -389,6 +389,53 @@ class MatchRepository {
     return true;
   }
 
+  /// Cancel/unsend interest
+  Future<bool> cancelInterest(String matchId) async {
+    if (!useFirebase) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      final index = _mockMatches.indexWhere((m) => m.id == matchId);
+      if (index != -1) {
+        _mockMatches[index] = _mockMatches[index].copyWith(
+          interestStatus: InterestStatus.none,
+        );
+      }
+      return true;
+    }
+
+    if (currentUserId == null) return false;
+
+    try {
+      // Find the interest document using getWhere
+      final interests = await firestoreService.getWhere(
+        collection: FirebaseConstants.interestsCollection,
+        field: FirebaseConstants.fieldFromUserId,
+        isEqualTo: currentUserId,
+      );
+
+      // Filter to find the one sent to this match
+      final interest = interests.where((i) => i[FirebaseConstants.fieldToUserId] == matchId).toList();
+
+      if (interest.isEmpty) {
+        return false;
+      }
+
+      final interestId = interest.first['id'];
+      if (interestId == null) {
+        return false;
+      }
+
+      // Delete the interest document
+      await firestoreService.delete(
+        collection: FirebaseConstants.interestsCollection,
+        documentId: interestId.toString(),
+      );
+
+      return true;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// Accept interest
   Future<bool> acceptInterest(String interestId) async {
     if (!useFirebase) {

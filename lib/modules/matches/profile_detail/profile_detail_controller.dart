@@ -104,6 +104,44 @@ class ProfileDetailController extends GetxController {
     }
   }
 
+  Future<void> cancelInterest() async {
+    if (matchId == null) return;
+    if (!await _checkAdminVerification()) return;
+
+    try {
+      final success = await _matchRepository.cancelInterest(matchId!);
+      if (success) {
+        interestStatus.value = InterestStatus.none;
+        if (profile.value != null) {
+          profile.value = profile.value!.copyWith(interestStatus: InterestStatus.none);
+        }
+        Get.snackbar(
+          'Success',
+          'Interest cancelled',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        Get.snackbar(
+          'Error',
+          'Interest not found',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to cancel interest: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   Future<void> skipProfile() async {
     Get.back();
   }

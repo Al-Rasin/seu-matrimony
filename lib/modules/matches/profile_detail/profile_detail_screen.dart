@@ -332,11 +332,47 @@ class ProfileDetailScreen extends StatelessWidget {
 
       switch (status) {
         case InterestStatus.sent:
-          return _buildStatusCard(
-            'Interest Sent',
-            'Waiting for response',
-            Icons.check_circle,
-            AppColors.primary,
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle, color: AppColors.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Interest Sent',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'Waiting for response',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.primary.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: controller.cancelInterest,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
           );
 
         case InterestStatus.received:
@@ -616,22 +652,38 @@ class ProfileDetailScreen extends StatelessWidget {
           }
 
           if (status == InterestStatus.sent) {
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.check_circle, color: AppColors.primary),
-                  SizedBox(width: 8),
-                  Text(
-                    'Interest Sent - Waiting for Response',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+            return Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle, color: AppColors.primary),
+                        SizedBox(width: 8),
+                        Text(
+                          'Interest Sent',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton(
+                  onPressed: controller.cancelInterest,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  ),
+                  child: const Text('Cancel'),
+                ),
+              ],
             );
           }
 
