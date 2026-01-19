@@ -170,7 +170,7 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () {},
+            onPressed: () => Get.toNamed('/edit-profile'),
             child: const Text(
               'Complete',
               style: TextStyle(color: Colors.white),
