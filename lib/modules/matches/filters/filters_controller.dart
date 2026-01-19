@@ -10,6 +10,7 @@ class FiltersController extends GetxController {
   final maxHeight = 190.0.obs;
 
   // Dropdown filters
+  final selectedGender = ''.obs;
   final selectedReligion = ''.obs;
   final selectedMaritalStatus = ''.obs;
   final selectedEducation = ''.obs;
@@ -23,6 +24,12 @@ class FiltersController extends GetxController {
   final onlineOnly = false.obs;
 
   // Filter options
+  final genders = [
+    '',
+    'Male',
+    'Female',
+  ];
+
   final religions = [
     '',
     'Islam',
@@ -95,6 +102,7 @@ class FiltersController extends GetxController {
     final args = Get.arguments as Map<String, dynamic>?;
     if (args != null && args['currentFilter'] != null) {
       final currentFilter = args['currentFilter'] as MatchFilter;
+      if (currentFilter.gender != null) selectedGender.value = currentFilter.gender!;
       if (currentFilter.minAge != null) minAge.value = currentFilter.minAge!;
       if (currentFilter.maxAge != null) maxAge.value = currentFilter.maxAge!;
       if (currentFilter.minHeight != null) minHeight.value = currentFilter.minHeight!;
@@ -112,6 +120,7 @@ class FiltersController extends GetxController {
   }
 
   void resetFilters() {
+    selectedGender.value = '';
     minAge.value = 18;
     maxAge.value = 40;
     minHeight.value = 150.0;
@@ -129,6 +138,7 @@ class FiltersController extends GetxController {
 
   void applyFilters() {
     final filter = MatchFilter(
+      gender: selectedGender.value.isNotEmpty ? selectedGender.value : null,
       minAge: minAge.value != 18 ? minAge.value : null,
       maxAge: maxAge.value != 40 ? maxAge.value : null,
       minHeight: minHeight.value != 150.0 ? minHeight.value : null,
@@ -151,7 +161,8 @@ class FiltersController extends GetxController {
   }
 
   bool get hasActiveFilters {
-    return minAge.value != 18 ||
+    return selectedGender.value.isNotEmpty ||
+        minAge.value != 18 ||
         maxAge.value != 40 ||
         minHeight.value != 150.0 ||
         maxHeight.value != 190.0 ||
@@ -168,6 +179,7 @@ class FiltersController extends GetxController {
 
   int get activeFilterCount {
     int count = 0;
+    if (selectedGender.value.isNotEmpty) count++;
     if (minAge.value != 18 || maxAge.value != 40) count++;
     if (minHeight.value != 150.0 || maxHeight.value != 190.0) count++;
     if (selectedReligion.value.isNotEmpty) count++;

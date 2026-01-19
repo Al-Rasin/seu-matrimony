@@ -42,6 +42,10 @@ class MatchRepository {
       return _getMockMatches(page: page, perPage: perPage, filter: filter);
     }
 
+    // Get current user's gender to filter by opposite gender by default
+    final currentUserGender = await _getCurrentUserGender();
+    final oppositeGender = _getOppositeGender(currentUserGender);
+
     // Fetch all active users and filter in memory to avoid complex index requirements
     // This is simpler and works without composite indexes
     final results = await firestoreService.getAll(
@@ -55,6 +59,14 @@ class MatchRepository {
         .where((data) => data['profileStatus'] == 'active') // Only active profiles
         .map((data) => MatchModel.fromFirestore(data))
         .toList();
+
+    // Apply opposite gender filter by default (unless user specified a gender filter)
+    final userSpecifiedGender = filter?.gender != null && filter!.gender!.isNotEmpty;
+    if (!userSpecifiedGender && oppositeGender != null) {
+      matches = matches.where((m) =>
+        m.gender?.toLowerCase() == oppositeGender.toLowerCase()
+      ).toList();
+    }
 
     // Apply filters in memory
     if (filter != null) {
@@ -106,6 +118,10 @@ class MatchRepository {
       return _getMockMatches(page: page, perPage: perPage, recommended: true);
     }
 
+    // Get current user's gender to filter by opposite gender by default
+    final currentUserGender = await _getCurrentUserGender();
+    final oppositeGender = _getOppositeGender(currentUserGender);
+
     // Fetch all users and filter in memory to avoid index requirements
     final results = await firestoreService.getAll(
       collection: FirebaseConstants.usersCollection,
@@ -118,6 +134,13 @@ class MatchRepository {
         .where((data) => data['profileStatus'] == 'active')
         .map((data) => MatchModel.fromFirestore(data))
         .toList();
+
+    // Filter by opposite gender by default
+    if (oppositeGender != null) {
+      matches = matches.where((m) =>
+        m.gender?.toLowerCase() == oppositeGender.toLowerCase()
+      ).toList();
+    }
 
     // Sort: online first, then by verification
     matches.sort((a, b) {
@@ -153,6 +176,10 @@ class MatchRepository {
       return _getMockMatches(page: page, perPage: perPage, newlyJoined: true);
     }
 
+    // Get current user's gender to filter by opposite gender by default
+    final currentUserGender = await _getCurrentUserGender();
+    final oppositeGender = _getOppositeGender(currentUserGender);
+
     // Simple query without complex filtering
     final results = await firestoreService.getAll(
       collection: FirebaseConstants.usersCollection,
@@ -164,6 +191,13 @@ class MatchRepository {
         .where((data) => data['profileStatus'] == 'active')
         .map((data) => MatchModel.fromFirestore(data))
         .toList();
+
+    // Filter by opposite gender by default
+    if (oppositeGender != null) {
+      matches = matches.where((m) =>
+        m.gender?.toLowerCase() == oppositeGender.toLowerCase()
+      ).toList();
+    }
 
     matches = await _enrichMatchesWithStatus(matches);
 
@@ -350,12 +384,27 @@ class MatchRepository {
       collection: FirebaseConstants.usersCollection,
       orderBy: FirebaseConstants.fieldCreatedAt,
       descending: true,
-      limit: limit,
+      limit: limit * 2, // Fetch more to account for gender filtering
     ).asyncMap((users) async {
-      final matches = users
+      // Get current user's gender to filter by opposite gender
+      final currentUserGender = await _getCurrentUserGender();
+      final oppositeGender = _getOppositeGender(currentUserGender);
+
+      var matches = users
           .where((data) => data['id'] != currentUserId)
           .map((data) => MatchModel.fromFirestore(data))
           .toList();
+
+      // Filter by opposite gender by default
+      if (oppositeGender != null) {
+        matches = matches.where((m) =>
+          m.gender?.toLowerCase() == oppositeGender.toLowerCase()
+        ).toList();
+      }
+
+      // Take only the requested limit after filtering
+      matches = matches.take(limit).toList();
+
       return await _enrichMatchesWithStatus(matches);
     });
   }
@@ -946,6 +995,29 @@ class MatchRepository {
   }
 
   // ==================== HELPER METHODS ====================
+
+  /// Get the opposite gender for filtering
+  String? _getOppositeGender(String? gender) {
+    if (gender == null || gender.isEmpty) return null;
+    final lowerGender = gender.toLowerCase();
+    if (lowerGender == 'male') return 'female';
+    if (lowerGender == 'female') return 'male';
+    return null;
+  }
+
+  /// Get current user's gender from Firestore
+  Future<String?> _getCurrentUserGender() async {
+    if (currentUserId == null) return null;
+    try {
+      final userData = await firestoreService.getById(
+        collection: FirebaseConstants.usersCollection,
+        documentId: currentUserId!,
+      );
+      return userData?['gender'] as String?;
+    } catch (e) {
+      return null;
+    }
+  }
 
   /// Enrich matches with shortlist and interest status
   Future<List<MatchModel>> _enrichMatchesWithStatus(List<MatchModel> matches) async {

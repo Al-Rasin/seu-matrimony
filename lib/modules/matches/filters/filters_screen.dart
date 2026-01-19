@@ -27,6 +27,17 @@ class FiltersScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Gender
+            _buildSectionTitle('Looking For'),
+            const SizedBox(height: 8),
+            Obx(() => _buildDropdownField(
+                  value: controller.selectedGender.value,
+                  items: controller.genders,
+                  hint: 'Select Gender',
+                  onChanged: (value) => controller.selectedGender.value = value ?? '',
+                )),
+            const SizedBox(height: 24),
+
             // Age Range
             _buildSectionTitle('Age Range'),
             Obx(() => Column(
