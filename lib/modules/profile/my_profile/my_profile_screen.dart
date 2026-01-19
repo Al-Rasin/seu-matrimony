@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:convert';
 import 'my_profile_controller.dart';
 import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_text_styles.dart';
@@ -30,12 +31,32 @@ class MyProfileScreen extends StatelessWidget {
             Center(
               child: Stack(
                 children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                    child:
-                        const Icon(Icons.person, size: 60, color: AppColors.primary),
-                  ),
+                  Obx(() {
+                    final photoUrl = controller.profilePhotoUrl.value;
+                    ImageProvider? imageProvider;
+                    
+                    if (photoUrl.isNotEmpty) {
+                      if (photoUrl.startsWith('data:image')) {
+                        try {
+                          final base64String = photoUrl.split(',').last;
+                          imageProvider = MemoryImage(base64Decode(base64String));
+                        } catch (e) {
+                          // Fallback if invalid base64
+                        }
+                      } else {
+                        imageProvider = NetworkImage(photoUrl);
+                      }
+                    }
+
+                    return CircleAvatar(
+                      radius: 60,
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+                      backgroundImage: imageProvider,
+                      child: imageProvider == null
+                          ? const Icon(Icons.person, size: 60, color: AppColors.primary)
+                          : null,
+                    );
+                  }),
                   Positioned(
                     bottom: 0,
                     right: 0,

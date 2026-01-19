@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/user_repository.dart';
+import '../../../core/constants/firebase_constants.dart';
 
 class MyProfileController extends GetxController {
   final AuthRepository _authRepository = Get.find<AuthRepository>();
@@ -26,7 +27,7 @@ class MyProfileController extends GetxController {
       final user = await _userRepository.getCurrentUser();
       userName.value = user['fullName'] ?? 'User';
       userEmail.value = user['email'] ?? '';
-      profilePhotoUrl.value = user['profilePhotoUrl'] ?? '';
+      profilePhotoUrl.value = user[FirebaseConstants.fieldProfilePhoto] ?? user['profilePhotoUrl'] ?? '';
       
       userAge.value = user['age']?.toString() ?? '';
       userGender.value = user['gender'] ?? '';
