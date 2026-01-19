@@ -46,6 +46,7 @@ class AdminDashboardScreen extends GetView<AdminDashboardController> {
                       controller.totalUsers.value.toString(),
                       Icons.people,
                       Colors.blue,
+                      () => Get.toNamed(AppRoutes.adminUserManagement, arguments: {'initialIndex': 0}),
                     ),
                     const SizedBox(width: 16),
                     _buildStatCard(
@@ -53,6 +54,7 @@ class AdminDashboardScreen extends GetView<AdminDashboardController> {
                       controller.pendingVerifications.value.toString(),
                       Icons.pending_actions,
                       Colors.orange,
+                      () => Get.toNamed(AppRoutes.adminUserManagement, arguments: {'initialIndex': 1}),
                     ),
                   ],
                 ),
@@ -64,6 +66,9 @@ class AdminDashboardScreen extends GetView<AdminDashboardController> {
                       controller.totalReports.value.toString(),
                       Icons.report_problem,
                       Colors.red,
+                      () {
+                        // Navigate to reports (if implemented)
+                      },
                     ),
                   ],
                 ),
@@ -75,9 +80,7 @@ class AdminDashboardScreen extends GetView<AdminDashboardController> {
                   'Verify users, block/unblock',
                   Icons.manage_accounts,
                   () {
-                    // Navigate to user management
-                    // Get.toNamed(AppRoutes.adminUserManagement); 
-                    Get.snackbar('Coming Soon', 'User management screen');
+                    Get.toNamed(AppRoutes.adminUserManagement);
                   },
                 ),
               ],
@@ -88,35 +91,38 @@ class AdminDashboardScreen extends GetView<AdminDashboardController> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color, VoidCallback? onTap) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 32),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: AppTextStyles.h2.copyWith(color: AppColors.textPrimary),
-            ),
-            Text(
-              title,
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-            ),
-          ],
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color, size: 32),
+              const SizedBox(height: 12),
+              Text(
+                value,
+                style: AppTextStyles.h2.copyWith(color: AppColors.textPrimary),
+              ),
+              Text(
+                title,
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+              ),
+            ],
+          ),
         ),
       ),
     );

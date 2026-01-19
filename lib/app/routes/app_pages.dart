@@ -30,6 +30,7 @@ import '../../modules/subscription/subscription_screen.dart';
 import '../../modules/settings/settings_screen.dart';
 import '../../modules/notifications/notifications_screen.dart';
 import '../../modules/admin/dashboard/admin_dashboard_screen.dart';
+import '../../modules/admin/user_management/user_management_screen.dart';
 
 class AppPages {
   static const initial = AppRoutes.splash;
@@ -39,6 +40,11 @@ class AppPages {
       name: AppRoutes.adminDashboard,
       page: () => const AdminDashboardScreen(),
       binding: AdminBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.adminUserManagement,
+      page: () => const UserManagementScreen(),
       transition: Transition.cupertino,
     ),
     GetPage(

@@ -19,6 +19,7 @@ abstract class AppRoutes {
 
   // Admin
   static const adminDashboard = '/admin-dashboard';
+  static const adminUserManagement = '/admin-user-management';
 
   // Matches
   static const matches = '/matches';
