@@ -1,0 +1,22 @@
+Feature Implemented: Edit Professional Details
+
+1.  **New Screen Created**: `lib/modules/profile/edit_profile/edit_professional_details_screen.dart`
+    -   Added UI for editing:
+        -   Highest Education (Dropdown)
+        -   Employment Status (Dropdown)
+        -   Occupation (Text Field)
+        -   Annual Income (Dropdown)
+        -   Work Location (Text Field)
+
+2.  **Controller Updated**: `lib/modules/profile/edit_profile/edit_profile_controller.dart`
+    -   Added controllers for the above fields.
+    -   Implemented `_loadProfessionalDetails` to fetch data from Firestore.
+    -   Implemented `saveProfessionalDetails` to update data in Firestore.
+    -   Added logic to handle both `employmentStatus` (standard) and `employment` (legacy) fields to ensure data compatibility.
+
+3.  **Navigation**:
+    -   Updated `editProfessionalDetails()` in the controller to navigate to the new screen instead of showing a "Coming Soon" message.
+
+**Verification**:
+-   The application builds successfully.
+-   The fields `occupation`, `employment` (as Employment Status), `annualIncome`, and `workLocation` are properly mapped to the UI.

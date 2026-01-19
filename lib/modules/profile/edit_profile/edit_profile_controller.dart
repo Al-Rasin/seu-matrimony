@@ -8,6 +8,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/material.dart';
 import 'edit_basic_details_screen.dart';
 import 'edit_personal_details_screen.dart';
+import 'edit_professional_details_screen.dart';
 
 class EditProfileController extends GetxController {
   final UserRepository _userRepository = Get.find<UserRepository>();
@@ -31,6 +32,12 @@ class EditProfileController extends GetxController {
   final studentIdController = TextEditingController();
   final isCurrentlyStudying = false.obs;
 
+  // Professional Details Controllers
+  final occupationController = TextEditingController();
+  final employment = Rxn<String>();
+  final annualIncome = Rxn<String>();
+  final highestEducation = Rxn<String>();
+  final workLocationController = TextEditingController();
 
   @override
   void onClose() {
@@ -40,6 +47,8 @@ class EditProfileController extends GetxController {
     noOfChildrenController.dispose();
     heightController.dispose();
     studentIdController.dispose();
+    occupationController.dispose();
+    workLocationController.dispose();
     super.onClose();
   }
 
@@ -144,8 +153,46 @@ class EditProfileController extends GetxController {
     }
   }
 
-  void editProfessionalDetails() {
-    Get.snackbar('Info', 'Edit Professional Details coming soon');
+  Future<void> editProfessionalDetails() async {
+    await _loadProfessionalDetails();
+    Get.to(() => const EditProfessionalDetailsScreen());
+  }
+
+  Future<void> _loadProfessionalDetails() async {
+    try {
+      isLoading.value = true;
+      final user = await _userRepository.getCurrentUser();
+
+      occupationController.text = user[FirebaseConstants.fieldOccupation] ?? '';
+      employment.value = user[FirebaseConstants.fieldEmploymentStatus] ?? user['employment'];
+      annualIncome.value = user['annualIncome'];
+      highestEducation.value = user[FirebaseConstants.fieldHighestEducation];
+      workLocationController.text = user['workLocation'] ?? '';
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load professional details');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> saveProfessionalDetails() async {
+    try {
+      isLoading.value = true;
+      await _userRepository.updateProfessionalDetails({
+        FirebaseConstants.fieldOccupation: occupationController.text,
+        FirebaseConstants.fieldEmploymentStatus: employment.value,
+        'employment': employment.value, // Keep legacy field for compatibility
+        'annualIncome': annualIncome.value,
+        FirebaseConstants.fieldHighestEducation: highestEducation.value,
+        'workLocation': workLocationController.text,
+      });
+      Get.back();
+      Get.snackbar('Success', 'Professional details updated successfully');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update professional details');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void editFamilyDetails() {
