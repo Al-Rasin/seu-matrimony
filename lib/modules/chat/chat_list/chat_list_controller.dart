@@ -29,7 +29,8 @@ class ChatListController extends GetxController
       },
       onError: (error) {
         isLoading.value = false;
-        Get.snackbar('Error', 'Failed to load conversations');
+        // Suppress error as per user request
+        print('Error loading conversations: $error');
       },
     );
   }

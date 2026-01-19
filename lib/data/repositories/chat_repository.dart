@@ -115,8 +115,7 @@ class ChatRepository {
             value: userId,
           ),
         ],
-        orderBy: FirebaseConstants.fieldLastMessageAt,
-        descending: true,
+        // Removed orderBy to avoid composite index requirement
         limit: limit,
       );
 
@@ -124,6 +123,28 @@ class ChatRepository {
       final enrichedConversations = await Future.wait(
         conversations.map((conv) => _enrichConversation(conv, userId)),
       );
+
+      // Client-side sorting
+      enrichedConversations.sort((a, b) {
+        final dateA = a[FirebaseConstants.fieldLastMessageAt];
+        final dateB = b[FirebaseConstants.fieldLastMessageAt];
+        if (dateA == null && dateB == null) return 0;
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+        // Compare Timestamps or Strings
+        DateTime dtA;
+        DateTime dtB;
+        
+        if (dateA is Timestamp) dtA = dateA.toDate();
+        else if (dateA is String) dtA = DateTime.tryParse(dateA) ?? DateTime(0);
+        else dtA = DateTime(0);
+
+        if (dateB is Timestamp) dtB = dateB.toDate();
+        else if (dateB is String) dtB = DateTime.tryParse(dateB) ?? DateTime(0);
+        else dtB = DateTime(0);
+
+        return dtB.compareTo(dtA); // Descending
+      });
 
       return {
         'success': true,
@@ -158,12 +179,34 @@ class ChatRepository {
             value: userId,
           ),
         ],
-        orderBy: FirebaseConstants.fieldLastMessageAt,
-        descending: true,
+        // Removed orderBy to avoid composite index requirement
       ).asyncMap((conversations) async {
         final enriched = await Future.wait(
           conversations.map((conv) => _enrichConversation(conv, userId)),
         );
+        
+        // Client-side sorting
+        enriched.sort((a, b) {
+          final dateA = a[FirebaseConstants.fieldLastMessageAt];
+          final dateB = b[FirebaseConstants.fieldLastMessageAt];
+          if (dateA == null && dateB == null) return 0;
+          if (dateA == null) return 1;
+          if (dateB == null) return -1;
+          
+          DateTime dtA;
+          DateTime dtB;
+          
+          if (dateA is Timestamp) dtA = dateA.toDate();
+          else if (dateA is String) dtA = DateTime.tryParse(dateA) ?? DateTime(0);
+          else dtA = DateTime(0);
+
+          if (dateB is Timestamp) dtB = dateB.toDate();
+          else if (dateB is String) dtB = DateTime.tryParse(dateB) ?? DateTime(0);
+          else dtB = DateTime(0);
+
+          return dtB.compareTo(dtA); // Descending
+        });
+
         return enriched.map((c) => ConversationModel.fromFirestore(c)).toList();
       });
     }
