@@ -28,11 +28,17 @@ import '../../modules/profile/edit_profile/edit_profile_screen.dart';
 import '../../modules/subscription/subscription_screen.dart';
 import '../../modules/settings/settings_screen.dart';
 import '../../modules/notifications/notifications_screen.dart';
+import '../../modules/admin/dashboard/admin_dashboard_screen.dart';
 
 class AppPages {
   static const initial = AppRoutes.splash;
 
   static final routes = [
+    GetPage(
+      name: AppRoutes.adminDashboard,
+      page: () => const AdminDashboardScreen(),
+      transition: Transition.cupertino,
+    ),
     GetPage(
       name: AppRoutes.splash,
       page: () => const SplashScreen(),
