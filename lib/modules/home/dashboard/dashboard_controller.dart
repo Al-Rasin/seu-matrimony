@@ -40,7 +40,8 @@ class DashboardController extends GetxController {
     try {
       final user = await _userRepository.getCurrentUser();
       userName.value = user['fullName'] ?? 'User';
-      profileCompletion.value = await _userRepository.getProfileCompletion();
+      // Recalculate profile completion to ensure it's up to date
+      profileCompletion.value = await _userRepository.recalculateProfileCompletion();
       isAdminVerified.value = await _authRepository.isAdminVerified();
     } catch (e) {
       // Handle error

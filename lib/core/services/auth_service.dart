@@ -323,13 +323,20 @@ class AuthService extends GetxService {
     );
   }
 
-  /// Check if user profile is complete
+  /// Check if user has completed basic profile info (enough to access the app)
+  /// User can complete remaining profile from home screen
   Future<bool> isProfileComplete() async {
     final userData = await getCurrentUserData();
     if (userData == null) return false;
 
-    final completion = userData[FirebaseConstants.fieldProfileCompletion] as int?;
-    return completion != null && completion >= 100;
+    // Check if basic required fields are present: gender and dateOfBirth/dob
+    final hasGender = userData[FirebaseConstants.fieldGender] != null &&
+        userData[FirebaseConstants.fieldGender].toString().isNotEmpty;
+    final hasDob = (userData[FirebaseConstants.fieldDateOfBirth] != null &&
+            userData[FirebaseConstants.fieldDateOfBirth].toString().isNotEmpty) ||
+        (userData['dob'] != null && userData['dob'].toString().isNotEmpty);
+
+    return hasGender && hasDob;
   }
 
   /// Get user role

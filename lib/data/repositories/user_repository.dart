@@ -458,51 +458,38 @@ class UserRepository {
     int completion = 0;
     int totalFields = 0;
 
-    // Basic details (20%)
-    final basicFields = [
-      FirebaseConstants.fieldFullName,
-      FirebaseConstants.fieldGender,
-      FirebaseConstants.fieldDateOfBirth,
-      FirebaseConstants.fieldDepartment,
-    ];
-    for (final field in basicFields) {
-      totalFields++;
-      if (_hasValue(userData[field])) completion++;
-    }
+    // Basic details (4 fields)
+    totalFields += 4;
+    if (_hasValue(userData[FirebaseConstants.fieldFullName])) completion++;
+    if (_hasValue(userData[FirebaseConstants.fieldGender])) completion++;
+    // Check both 'dateOfBirth' and legacy 'dob' field
+    if (_hasValue(userData[FirebaseConstants.fieldDateOfBirth]) || _hasValue(userData['dob'])) completion++;
+    if (_hasValue(userData[FirebaseConstants.fieldDepartment])) completion++;
 
-    // Personal details (20%)
-    final personalFields = [
-      FirebaseConstants.fieldMaritalStatus,
-      FirebaseConstants.fieldHeight,
-      FirebaseConstants.fieldReligion,
-      FirebaseConstants.fieldStudentId,
-    ];
-    for (final field in personalFields) {
-      totalFields++;
-      if (_hasValue(userData[field])) completion++;
-    }
+    // Personal details (4 fields)
+    totalFields += 4;
+    if (_hasValue(userData[FirebaseConstants.fieldMaritalStatus])) completion++;
+    if (_hasValue(userData[FirebaseConstants.fieldHeight])) completion++;
+    if (_hasValue(userData[FirebaseConstants.fieldReligion])) completion++;
+    if (_hasValue(userData[FirebaseConstants.fieldStudentId])) completion++;
 
-    // Professional details (20%)
-    final professionalFields = [
-      FirebaseConstants.fieldHighestEducation,
-      FirebaseConstants.fieldEmploymentStatus,
-      FirebaseConstants.fieldOccupation,
-      FirebaseConstants.fieldCurrentCity,
-    ];
-    for (final field in professionalFields) {
-      totalFields++;
-      if (_hasValue(userData[field])) completion++;
-    }
+    // Professional details (4 fields)
+    totalFields += 4;
+    if (_hasValue(userData[FirebaseConstants.fieldHighestEducation])) completion++;
+    // Check both 'employmentStatus' and legacy 'employment' field
+    if (_hasValue(userData[FirebaseConstants.fieldEmploymentStatus]) || _hasValue(userData['employment'])) completion++;
+    if (_hasValue(userData[FirebaseConstants.fieldOccupation])) completion++;
+    if (_hasValue(userData[FirebaseConstants.fieldCurrentCity])) completion++;
 
-    // About (20%)
+    // About (1 field) - check both 'about' and legacy 'bio' field
     totalFields++;
-    if (_hasValue(userData[FirebaseConstants.fieldAbout])) completion++;
+    if (_hasValue(userData[FirebaseConstants.fieldAbout]) || _hasValue(userData['bio'])) completion++;
 
-    // Profile photo (10%)
+    // Profile photo (1 field)
     totalFields++;
     if (_hasValue(userData[FirebaseConstants.fieldProfilePhoto])) completion++;
 
-    // SEU ID document (10%)
+    // SEU ID document (1 field)
     totalFields++;
     if (_hasValue(userData[FirebaseConstants.fieldSeuIdDocument])) completion++;
 
@@ -526,6 +513,47 @@ class UserRepository {
     return true;
   }
 
+  /// Check if user has completed basic required fields (for login redirect)
+  Future<bool> hasBasicProfileInfo() async {
+    if (useFirebase) {
+      final userId = authService.currentUserId;
+      if (userId == null) return false;
+
+      final userData = await firestoreService.getById(
+        collection: FirebaseConstants.usersCollection,
+        documentId: userId,
+      );
+
+      if (userData == null) return false;
+
+      // Required fields: gender and either dateOfBirth or dob
+      final hasGender = _hasValue(userData[FirebaseConstants.fieldGender]);
+      final hasDob = _hasValue(userData[FirebaseConstants.fieldDateOfBirth]) || _hasValue(userData['dob']);
+
+      return hasGender && hasDob;
+    }
+
+    return true;
+  }
+
+  /// Recalculate and update profile completion percentage
+  Future<int> recalculateProfileCompletion() async {
+    if (useFirebase) {
+      final userId = authService.currentUserId;
+      if (userId == null) return 0;
+
+      await _updateProfileCompletion(userId);
+
+      // Return the new completion percentage
+      final userData = await firestoreService.getById(
+        collection: FirebaseConstants.usersCollection,
+        documentId: userId,
+      );
+      return userData?[FirebaseConstants.fieldProfileCompletion] ?? 0;
+    }
+    return 0;
+  }
+
   /// Mark profile as complete (after registration)
   Future<void> markProfileComplete() async {
     if (useFirebase) {
@@ -536,9 +564,8 @@ class UserRepository {
     }
   }
 
-  /// Check if user profile is complete
+  /// Check if user profile is complete (has basic info)
   Future<bool> isProfileComplete() async {
-    final completion = await getProfileCompletion();
-    return completion >= 80; // Consider 80% as complete
+    return await hasBasicProfileInfo();
   }
 }
