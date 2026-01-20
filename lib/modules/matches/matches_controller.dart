@@ -308,7 +308,12 @@ class MatchesController extends GetxController {
       }
 
       if (success) {
-        matches[index] = match.copyWith(isShortlisted: !isCurrentlyShortlisted);
+        // If on Saved tab and removing from shortlist, remove from list
+        if (selectedTab.value == MatchTab.saved && isCurrentlyShortlisted) {
+          matches.removeAt(index);
+        } else {
+          matches[index] = match.copyWith(isShortlisted: !isCurrentlyShortlisted);
+        }
         Get.snackbar(
           'Success',
           isCurrentlyShortlisted ? 'Removed from shortlist' : 'Added to shortlist',

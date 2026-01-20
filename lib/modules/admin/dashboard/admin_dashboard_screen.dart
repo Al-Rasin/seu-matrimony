@@ -18,8 +18,29 @@ class AdminDashboardScreen extends GetView<AdminDashboardController> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              Get.find<AuthRepository>().logout();
-              Get.offAllNamed(AppRoutes.login);
+              Get.dialog(
+                AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: const Text('No'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Get.back();
+                        await Get.find<AuthRepository>().logout();
+                        Get.offAllNamed(AppRoutes.login);
+                      },
+                      child: const Text(
+                        'Yes',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              );
             },
           ),
         ],
