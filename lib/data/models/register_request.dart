@@ -1,15 +1,6 @@
 /// Register request model for initial registration
 class RegisterRequest {
-  final String fullName;
-  final String phone;
-  final String username;
-  final String password;
-  final String confirmPassword;
-  final String profileFor;
-  final String? seuIdImage; // Base64 encoded SEU ID image
-  final bool acceptedTerms;
-
-  const RegisterRequest({
+    const RegisterRequest({
     required this.fullName,
     required this.phone,
     required this.username,
@@ -19,6 +10,18 @@ class RegisterRequest {
     this.seuIdImage,
     this.acceptedTerms = false,
   });
+
+  
+  final String fullName;
+  final String phone;
+  final String username;
+  final String password;
+  final String confirmPassword;
+  final String profileFor;
+  final String? seuIdImage; // Base64 encoded SEU ID image
+  final bool acceptedTerms;
+
+
 
   Map<String, dynamic> toJson() {
     return {
