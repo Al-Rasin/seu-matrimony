@@ -3,14 +3,6 @@ import '../../core/constants/firebase_constants.dart';
 
 /// Model representing a user notification
 class NotificationModel {
-  final String id;
-  final String userId;
-  final String type; // interest, message, match, system
-  final String title;
-  final String body;
-  final Map<String, dynamic>? data;
-  final bool isRead;
-  final DateTime createdAt;
 
   const NotificationModel({
     required this.id,
@@ -22,6 +14,18 @@ class NotificationModel {
     this.isRead = false,
     required this.createdAt,
   });
+
+  
+  final String id;
+  final String userId;
+  final String type; // interest, message, match, system
+  final String title;
+  final String body;
+  final Map<String, dynamic>? data;
+  final bool isRead;
+  final DateTime createdAt;
+
+  
 
   /// Create NotificationModel from Firestore document data
   factory NotificationModel.fromFirestore(Map<String, dynamic> data, String id) {
