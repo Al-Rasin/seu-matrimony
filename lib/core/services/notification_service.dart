@@ -66,6 +66,12 @@ class NotificationService extends GetxService {
         if (id != null) {
            Get.toNamed(AppRoutes.profileDetail, arguments: {'matchId': id});
         }
+      } else if (payload.startsWith(AppRoutes.chatDetail)) {
+        final uri = Uri.parse(payload);
+        final id = uri.queryParameters['id'];
+        if (id != null) {
+           Get.toNamed(AppRoutes.chatDetail, arguments: {'conversationId': id});
+        }
       } else if (payload.isNotEmpty) {
         Get.toNamed(payload);
       }
@@ -137,11 +143,27 @@ class NotificationService extends GetxService {
     final type = item[FirebaseConstants.fieldType] as String?;
 
     String? payload;
-    if (data != null && data['id'] != null) {
-      final targetId = data['id'];
+    if (data != null) {
+      final targetId = data['id']; // This is userId for interest, conversationId for chat
+      
       if (type == 'interest_received' || type == 'interest_accepted') {
-        // Navigate to profile detail of the person who acted
-        payload = '${AppRoutes.profileDetail}?id=$targetId';
+        if (targetId != null) {
+          payload = '${AppRoutes.profileDetail}?id=$targetId';
+        }
+      } else if (type == 'message_received') {
+        if (targetId != null) {
+          // Check if user is currently chatting in this conversation
+          if (Get.currentRoute == AppRoutes.chatDetail) {
+             final args = Get.arguments as Map<String, dynamic>?;
+             final currentConvId = args?['conversationId'];
+             if (currentConvId == targetId) {
+               // User is already looking at this chat, suppress notification
+               return; 
+             }
+          }
+          
+          payload = '${AppRoutes.chatDetail}?id=$targetId'; // targetId is conversationId here
+        }
       }
     }
 

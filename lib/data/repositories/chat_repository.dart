@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../../core/services/mock_data_service.dart';
 import '../../core/services/firestore_service.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/notification_service.dart';
 import '../../core/constants/firebase_constants.dart';
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
@@ -14,6 +15,7 @@ class ChatRepository {
   // Lazy initialization for Firebase services
   FirestoreService? _firestoreService;
   AuthService? _authService;
+  NotificationService? _notificationService;
 
   FirestoreService get firestoreService {
     _firestoreService ??= Get.find<FirestoreService>();
@@ -23,6 +25,11 @@ class ChatRepository {
   AuthService get authService {
     _authService ??= Get.find<AuthService>();
     return _authService!;
+  }
+
+  NotificationService get notificationService {
+    _notificationService ??= Get.find<NotificationService>();
+    return _notificationService!;
   }
 
   /// Check if using Firebase or mock data
@@ -393,6 +400,9 @@ class ChatRepository {
       // Increment unread count for other participants
       await _incrementUnreadCount(conversationId, userId);
 
+      // Send notification to other participants
+      _sendNotificationToParticipants(conversationId, userId, content);
+
       return {
         'success': true,
         'data': {
@@ -700,6 +710,45 @@ class ChatRepository {
           'unreadCount_$participantId': FieldValue.increment(1),
         });
       }
+    }
+  }
+
+  Future<void> _sendNotificationToParticipants(String conversationId, String senderId, String content) async {
+    try {
+      final conv = await firestoreService.getById(
+        collection: FirebaseConstants.conversationsCollection,
+        documentId: conversationId,
+      );
+
+      if (conv == null) return;
+
+      final participants = List<String>.from(conv['participants'] ?? []);
+      final senderData = await firestoreService.getById(
+        collection: FirebaseConstants.usersCollection,
+        documentId: senderId,
+      );
+      final senderName = senderData?['fullName'] ?? 'Someone';
+
+      for (final participantId in participants) {
+        if (participantId != senderId) {
+          // Send notification
+          await notificationService.saveNotification(
+            userId: participantId,
+            type: 'message_received',
+            title: senderName,
+            body: content, // Message content as body
+            data: {
+              'type': 'chat',
+              'id': conversationId, // Conversation ID
+              'senderId': senderId,
+              'senderName': senderName,
+              'senderPhoto': senderData?['profilePhoto'],
+            },
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error sending chat notification: $e');
     }
   }
 
