@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// User model for SEU Matrimony app
 class UserModel {
-const UserModel({
+  const UserModel({
     required this.id,
     required this.username,
     required this.fullName,
@@ -87,8 +87,6 @@ const UserModel({
 
   // Profile Completion
   final int profileCompletionPercentage;
-
-  
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -184,9 +182,8 @@ const UserModel({
       currentCity: data['currentCity']?.toString(),
       bio: data['about']?.toString(),
       photos: data['photos'] != null ? List<String>.from(data['photos']) : null,
-      profileCompletionPercentage: data['profileCompletion'] is int
-          ? data['profileCompletion']
-          : int.tryParse(data['profileCompletion']?.toString() ?? '0') ?? 0,
+      profileCompletionPercentage:
+          data['profileCompletion'] is int ? data['profileCompletion'] : int.tryParse(data['profileCompletion']?.toString() ?? '0') ?? 0,
     );
   }
 
@@ -355,8 +352,7 @@ const UserModel({
     if (dateOfBirth == null) return age;
     final now = DateTime.now();
     int calculatedAge = now.year - dateOfBirth!.year;
-    if (now.month < dateOfBirth!.month ||
-        (now.month == dateOfBirth!.month && now.day < dateOfBirth!.day)) {
+    if (now.month < dateOfBirth!.month || (now.month == dateOfBirth!.month && now.day < dateOfBirth!.day)) {
       calculatedAge--;
     }
     return calculatedAge;

@@ -17,10 +17,18 @@ class DashboardScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('SEU Matrimony'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Get.toNamed('/notifications'),
-          ),
+          Obx(() => IconButton(
+                icon: Badge(
+                  isLabelVisible: controller.unreadNotificationCount.value > 0,
+                  label: Text(
+                    controller.unreadNotificationCount.value > 99
+                        ? '99+'
+                        : controller.unreadNotificationCount.value.toString(),
+                  ),
+                  child: const Icon(Icons.notifications_outlined),
+                ),
+                onPressed: () => Get.toNamed('/notifications'),
+              )),
         ],
       ),
       body: RefreshIndicator(

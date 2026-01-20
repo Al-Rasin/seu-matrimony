@@ -45,6 +45,10 @@ import '../../modules/settings/legal/privacy_policy_screen.dart';
 import '../../modules/notifications/notifications_screen.dart';
 import '../../modules/admin/dashboard/admin_dashboard_screen.dart';
 import '../../modules/admin/user_management/user_management_screen.dart';
+import '../../modules/admin/user_management/user_detail_screen.dart';
+import '../../modules/admin/user_management/edit_user_screen.dart';
+import '../../modules/admin/reports/admin_reports_screen.dart';
+import '../../modules/admin/settings/admin_settings_screen.dart';
 
 class AppPages {
   static const initial = AppRoutes.splash;
@@ -59,6 +63,28 @@ class AppPages {
     GetPage(
       name: AppRoutes.adminUserManagement,
       page: () => const UserManagementScreen(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.adminUserDetail,
+      page: () => const UserDetailScreen(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.adminEditUser,
+      page: () => const EditUserScreen(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.adminReports,
+      page: () => const AdminReportsScreen(),
+      binding: AdminBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.adminAppSettings,
+      page: () => const AdminSettingsScreen(),
+      binding: AdminBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(
