@@ -2,27 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Match model for displaying potential matches
 class MatchModel {
-  final String id;
-  final String fullName;
-  final String? profilePhoto;
-  final List<String>? photos;
-  final int? age;
-  final String? gender;
-  final double? height;
-  final String? religion;
-  final String? maritalStatus;
-  final String? department;
-  final String? highestEducation;
-  final String? occupation;
-  final String? currentCity;
-  final String? bio;
-  final int profileCompletionPercentage;
-  final bool isVerified;
-  final bool isOnline;
-  final DateTime? lastSeen;
-  final InterestStatus? interestStatus;
-  final String? interestId;
-  final bool isShortlisted;
 
   const MatchModel({
     required this.id,
@@ -47,6 +26,31 @@ class MatchModel {
     this.interestId,
     this.isShortlisted = false,
   });
+
+  
+  final String id;
+  final String fullName;
+  final String? profilePhoto;
+  final List<String>? photos;
+  final int? age;
+  final String? gender;
+  final double? height;
+  final String? religion;
+  final String? maritalStatus;
+  final String? department;
+  final String? highestEducation;
+  final String? occupation;
+  final String? currentCity;
+  final String? bio;
+  final int profileCompletionPercentage;
+  final bool isVerified;
+  final bool isOnline;
+  final DateTime? lastSeen;
+  final InterestStatus? interestStatus;
+  final String? interestId;
+  final bool isShortlisted;
+
+  
 
   factory MatchModel.fromJson(Map<String, dynamic> json) {
     return MatchModel(
