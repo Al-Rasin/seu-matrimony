@@ -2,10 +2,34 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Match model for displaying potential matches
 class MatchModel {
+  final String id;
+  final String fullName;
+  final String? email;
+  final String? profilePhoto;
+  final List<String>? photos;
+  final int? age;
+  final String? gender;
+  final double? height;
+  final String? religion;
+  final String? maritalStatus;
+  final String? department;
+  final String? highestEducation;
+  final String? occupation;
+  final String? currentCity;
+  final String? bio;
+  final String? familyType;
+  final int profileCompletionPercentage;
+  final bool isVerified;
+  final bool isOnline;
+  final DateTime? lastSeen;
+  final InterestStatus? interestStatus;
+  final String? interestId;
+  final bool isShortlisted;
 
   const MatchModel({
     required this.id,
     required this.fullName,
+    this.email,
     this.profilePhoto,
     this.photos,
     this.age,
@@ -18,6 +42,7 @@ class MatchModel {
     this.occupation,
     this.currentCity,
     this.bio,
+    this.familyType,
     this.profileCompletionPercentage = 0,
     this.isVerified = false,
     this.isOnline = false,
@@ -56,6 +81,7 @@ class MatchModel {
     return MatchModel(
       id: json['id']?.toString() ?? '',
       fullName: json['full_name']?.toString() ?? json['fullName']?.toString() ?? '',
+      email: json['email']?.toString(),
       profilePhoto: json['profile_photo']?.toString() ?? json['profilePhoto']?.toString(),
       photos: json['photos'] != null ? List<String>.from(json['photos']) : null,
       age: json['age'] is int ? json['age'] : int.tryParse(json['age']?.toString() ?? ''),
@@ -70,6 +96,7 @@ class MatchModel {
       occupation: json['occupation']?.toString(),
       currentCity: json['current_city']?.toString() ?? json['currentCity']?.toString(),
       bio: json['bio']?.toString(),
+      familyType: json['family_type']?.toString() ?? json['familyType']?.toString(),
       profileCompletionPercentage: json['profile_completion_percentage'] is int
           ? json['profile_completion_percentage']
           : int.tryParse(json['profile_completion_percentage']?.toString() ?? '0') ?? 0,
@@ -99,6 +126,7 @@ class MatchModel {
     return MatchModel(
       id: data['id']?.toString() ?? '',
       fullName: data['fullName']?.toString() ?? '',
+      email: data['email']?.toString(),
       profilePhoto: data['profilePhoto']?.toString(),
       photos: data['photos'] != null ? List<String>.from(data['photos']) : null,
       age: data['age'] is int ? data['age'] : int.tryParse(data['age']?.toString() ?? ''),
@@ -115,6 +143,7 @@ class MatchModel {
       occupation: data['occupation']?.toString(),
       currentCity: data['currentCity']?.toString(),
       bio: data['about']?.toString() ?? data['bio']?.toString(),
+      familyType: data['familyType']?.toString(),
       profileCompletionPercentage: data['profileCompletion'] is int
           ? data['profileCompletion']
           : int.tryParse(data['profileCompletion']?.toString() ?? '0') ?? 0,
@@ -131,6 +160,7 @@ class MatchModel {
     return {
       'id': id,
       'full_name': fullName,
+      'email': email,
       'profile_photo': profilePhoto,
       'photos': photos,
       'age': age,
@@ -143,6 +173,7 @@ class MatchModel {
       'occupation': occupation,
       'current_city': currentCity,
       'bio': bio,
+      'family_type': familyType,
       'profile_completion_percentage': profileCompletionPercentage,
       'is_verified': isVerified,
       'is_online': isOnline,
@@ -184,6 +215,7 @@ class MatchModel {
   MatchModel copyWith({
     String? id,
     String? fullName,
+    String? email,
     String? profilePhoto,
     List<String>? photos,
     int? age,
@@ -196,6 +228,7 @@ class MatchModel {
     String? occupation,
     String? currentCity,
     String? bio,
+    String? familyType,
     int? profileCompletionPercentage,
     bool? isVerified,
     bool? isOnline,
@@ -207,6 +240,7 @@ class MatchModel {
     return MatchModel(
       id: id ?? this.id,
       fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
       profilePhoto: profilePhoto ?? this.profilePhoto,
       photos: photos ?? this.photos,
       age: age ?? this.age,
@@ -219,6 +253,7 @@ class MatchModel {
       occupation: occupation ?? this.occupation,
       currentCity: currentCity ?? this.currentCity,
       bio: bio ?? this.bio,
+      familyType: familyType ?? this.familyType,
       profileCompletionPercentage: profileCompletionPercentage ?? this.profileCompletionPercentage,
       isVerified: isVerified ?? this.isVerified,
       isOnline: isOnline ?? this.isOnline,

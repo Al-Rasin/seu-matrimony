@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'profile_detail_controller.dart';
@@ -147,10 +148,13 @@ class ProfileDetailScreen extends StatelessWidget {
                       icon: Icons.info_outline,
                       child: Column(
                         children: [
+                          if (kDebugMode && profile.email != null)
+                            _buildDetailRow('Email (Debug)', profile.email!),
                           _buildDetailRow('Age', profile.ageDisplay),
                           _buildDetailRow('Height', profile.displayHeight ?? 'Not specified'),
                           _buildDetailRow('Religion', profile.religion ?? 'Not specified'),
                           _buildDetailRow('Marital Status', profile.maritalStatus ?? 'Not specified'),
+                          _buildDetailRow('Family Type', profile.familyType ?? 'Not specified'),
                           _buildDetailRow('Department', profile.department ?? 'Not specified'),
                         ],
                       ),
@@ -201,18 +205,45 @@ class ProfileDetailScreen extends StatelessWidget {
   }
 
   Widget _buildProfileImage(MatchModel profile) {
-    if (profile.profilePhoto != null) {
+    if (profile.profilePhoto == null || profile.profilePhoto!.isEmpty) {
+      return _buildPlaceholderImage();
+    }
+
+    final photoUrl = profile.profilePhoto!;
+
+    // Handle data URI (base64)
+    if (photoUrl.startsWith('data:')) {
       try {
-        return Image.memory(
-          Uri.parse(profile.profilePhoto!).data!.contentAsBytes(),
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
-        );
+        final uri = Uri.parse(photoUrl);
+        if (uri.data != null) {
+          return Image.memory(
+            uri.data!.contentAsBytes(),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+          );
+        }
       } catch (_) {
         return _buildPlaceholderImage();
       }
     }
-    return _buildPlaceholderImage();
+
+    // Handle network URL
+    return Image.network(
+      photoUrl,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded /
+                    loadingProgress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+    );
   }
 
   Widget _buildPlaceholderImage() {
@@ -304,11 +335,47 @@ class ProfileDetailScreen extends StatelessWidget {
 
       switch (status) {
         case InterestStatus.sent:
-          return _buildStatusCard(
-            'Interest Sent',
-            'Waiting for response',
-            Icons.check_circle,
-            AppColors.primary,
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle, color: AppColors.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Interest Sent',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'Waiting for response',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.primary.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: controller.cancelInterest,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
           );
 
         case InterestStatus.received:
@@ -588,22 +655,38 @@ class ProfileDetailScreen extends StatelessWidget {
           }
 
           if (status == InterestStatus.sent) {
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.check_circle, color: AppColors.primary),
-                  SizedBox(width: 8),
-                  Text(
-                    'Interest Sent - Waiting for Response',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+            return Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle, color: AppColors.primary),
+                        SizedBox(width: 8),
+                        Text(
+                          'Interest Sent',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton(
+                  onPressed: controller.cancelInterest,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  ),
+                  child: const Text('Cancel'),
+                ),
+              ],
             );
           }
 

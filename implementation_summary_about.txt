@@ -1,0 +1,15 @@
+Feature Implemented: About Yourself in Edit Profile
+
+1.  **New Screen**: Created `lib/modules/profile/edit_profile/edit_about_screen.dart` containing a multiline text field for editing the user's bio.
+
+2.  **Controller Updated**: Modified `lib/modules/profile/edit_profile/edit_profile_controller.dart` to:
+    -   Add `bioController` for the about field.
+    -   Implement `_loadAbout` to fetch data from Firestore (handling both `about` and `bio` keys).
+    -   Implement `saveAbout` to update data in Firestore (updating both keys for compatibility).
+    -   Implement `editAbout` for navigation.
+
+3.  **UI Updated**: Modified `lib/modules/profile/edit_profile/edit_profile_screen.dart` to include a new list item "About Yourself" that navigates to the edit screen.
+
+**Verification**:
+-   Build successful.
+-   Users can now edit their bio/about section from the Edit Profile screen.

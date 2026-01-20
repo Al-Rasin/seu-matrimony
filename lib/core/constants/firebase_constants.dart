@@ -37,6 +37,9 @@ class FirebaseConstants {
   /// Notifications collection - user notifications
   static const String notificationsCollection = 'notifications';
 
+  /// Calls collection - video/voice call history
+  static const String callsCollection = 'calls';
+
   /// App settings collection - app configuration
   static const String appSettingsCollection = 'appSettings';
 
@@ -66,12 +69,27 @@ class FirebaseConstants {
   static const String fieldProfileFor = 'profileFor';
   static const String fieldRole = 'role';
   static const String fieldIsVerified = 'isVerified';
+  static const String fieldIsEmailVerified = 'isEmailVerified';
   static const String fieldIsOnline = 'isOnline';
   static const String fieldLastSeen = 'lastSeen';
   static const String fieldProfileCompletion = 'profileCompletion';
   static const String fieldFcmToken = 'fcmToken';
   static const String fieldCreatedAt = 'createdAt';
   static const String fieldUpdatedAt = 'updatedAt';
+  
+  // ==================== PRIVACY FIELDS ====================
+  
+  static const String fieldPrivacySettings = 'privacySettings';
+  static const String fieldPrivacyProfilePhoto = 'profilePhoto';
+  static const String fieldPrivacyContactInfo = 'contactInfo';
+  static const String fieldPrivacyShowOnlineStatus = 'showOnlineStatus';
+  static const String fieldPrivacyReadReceipts = 'readReceipts';
+  static const String fieldPrivacyIsProfileVisible = 'isProfileVisible';
+
+  static const String privacyAll = 'all';
+  static const String privacyConnected = 'connected';
+  static const String privacyRequest = 'request';
+  static const String privacyNone = 'none';
 
   // ==================== INTEREST FIELDS ====================
 
@@ -90,6 +108,7 @@ class FirebaseConstants {
   static const String fieldLastMessage = 'lastMessage';
   static const String fieldLastMessageAt = 'lastMessageAt';
   static const String fieldUnreadCount = 'unreadCount';
+  static const String fieldTypingStatus = 'typingStatus';
 
   // ==================== MESSAGE FIELDS ====================
 
@@ -156,6 +175,14 @@ class FirebaseConstants {
   static const String fieldTitle = 'title';
   static const String fieldBody = 'body';
   static const String fieldData = 'data';
+
+  // ==================== CALL FIELDS ====================
+
+  static const String fieldCallerId = 'callerId';
+  static const String fieldReceiverId = 'receiverId';
+  static const String fieldCallType = 'callType'; // audio, video
+  static const String fieldCallStatus = 'callStatus'; // missed, completed, rejected
+  static const String fieldCallDuration = 'duration';
 
   // ==================== USER ROLES ====================
 

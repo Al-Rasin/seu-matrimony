@@ -1,5 +1,6 @@
 /// Match filter model for filtering potential matches
 class MatchFilter {
+  final String? gender;
   final int? minAge;
   final int? maxAge;
   final double? minHeight;
@@ -10,11 +11,13 @@ class MatchFilter {
   final String? city;
   final String? occupation;
   final String? department;
+  final String? familyType;
   final bool? verifiedOnly;
   final bool? withPhotoOnly;
   final bool? onlineOnly;
 
   const MatchFilter({
+    this.gender,
     this.minAge,
     this.maxAge,
     this.minHeight,
@@ -25,6 +28,7 @@ class MatchFilter {
     this.city,
     this.occupation,
     this.department,
+    this.familyType,
     this.verifiedOnly,
     this.withPhotoOnly,
     this.onlineOnly,
@@ -33,6 +37,7 @@ class MatchFilter {
   /// Convert to query parameters for API
   Map<String, dynamic> toQueryParams() {
     return {
+      if (gender != null && gender!.isNotEmpty) 'gender': gender,
       if (minAge != null) 'min_age': minAge,
       if (maxAge != null) 'max_age': maxAge,
       if (minHeight != null) 'min_height': minHeight,
@@ -43,6 +48,7 @@ class MatchFilter {
       if (city != null && city!.isNotEmpty) 'city': city,
       if (occupation != null && occupation!.isNotEmpty) 'occupation': occupation,
       if (department != null && department!.isNotEmpty) 'department': department,
+      if (familyType != null && familyType!.isNotEmpty) 'family_type': familyType,
       if (verifiedOnly == true) 'verified_only': true,
       if (withPhotoOnly == true) 'with_photo_only': true,
       if (onlineOnly == true) 'online_only': true,
@@ -52,6 +58,7 @@ class MatchFilter {
   /// Create from query parameters
   factory MatchFilter.fromQueryParams(Map<String, dynamic> params) {
     return MatchFilter(
+      gender: params['gender'] as String?,
       minAge: params['min_age'] as int?,
       maxAge: params['max_age'] as int?,
       minHeight: params['min_height'] as double?,
@@ -62,6 +69,7 @@ class MatchFilter {
       city: params['city'] as String?,
       occupation: params['occupation'] as String?,
       department: params['department'] as String?,
+      familyType: params['family_type'] as String?,
       verifiedOnly: params['verified_only'] as bool?,
       withPhotoOnly: params['with_photo_only'] as bool?,
       onlineOnly: params['online_only'] as bool?,
@@ -70,6 +78,7 @@ class MatchFilter {
 
   /// Create a copy with updated values
   MatchFilter copyWith({
+    String? gender,
     int? minAge,
     int? maxAge,
     double? minHeight,
@@ -80,11 +89,13 @@ class MatchFilter {
     String? city,
     String? occupation,
     String? department,
+    String? familyType,
     bool? verifiedOnly,
     bool? withPhotoOnly,
     bool? onlineOnly,
   }) {
     return MatchFilter(
+      gender: gender ?? this.gender,
       minAge: minAge ?? this.minAge,
       maxAge: maxAge ?? this.maxAge,
       minHeight: minHeight ?? this.minHeight,
@@ -95,6 +106,7 @@ class MatchFilter {
       city: city ?? this.city,
       occupation: occupation ?? this.occupation,
       department: department ?? this.department,
+      familyType: familyType ?? this.familyType,
       verifiedOnly: verifiedOnly ?? this.verifiedOnly,
       withPhotoOnly: withPhotoOnly ?? this.withPhotoOnly,
       onlineOnly: onlineOnly ?? this.onlineOnly,
@@ -103,7 +115,8 @@ class MatchFilter {
 
   /// Check if any filter is applied
   bool get hasActiveFilters {
-    return minAge != null ||
+    return (gender != null && gender!.isNotEmpty) ||
+        minAge != null ||
         maxAge != null ||
         minHeight != null ||
         maxHeight != null ||
@@ -113,6 +126,7 @@ class MatchFilter {
         (city != null && city!.isNotEmpty) ||
         (occupation != null && occupation!.isNotEmpty) ||
         (department != null && department!.isNotEmpty) ||
+        (familyType != null && familyType!.isNotEmpty) ||
         verifiedOnly == true ||
         withPhotoOnly == true ||
         onlineOnly == true;
@@ -121,6 +135,7 @@ class MatchFilter {
   /// Get count of active filters
   int get activeFilterCount {
     int count = 0;
+    if (gender != null && gender!.isNotEmpty) count++;
     if (minAge != null || maxAge != null) count++;
     if (minHeight != null || maxHeight != null) count++;
     if (religion != null && religion!.isNotEmpty) count++;
@@ -129,6 +144,7 @@ class MatchFilter {
     if (city != null && city!.isNotEmpty) count++;
     if (occupation != null && occupation!.isNotEmpty) count++;
     if (department != null && department!.isNotEmpty) count++;
+    if (familyType != null && familyType!.isNotEmpty) count++;
     if (verifiedOnly == true) count++;
     if (withPhotoOnly == true) count++;
     if (onlineOnly == true) count++;
@@ -140,15 +156,16 @@ class MatchFilter {
 
   @override
   String toString() {
-    return 'MatchFilter(age: $minAge-$maxAge, height: $minHeight-$maxHeight, '
+    return 'MatchFilter(gender: $gender, age: $minAge-$maxAge, height: $minHeight-$maxHeight, '
         'religion: $religion, status: $maritalStatus, edu: $education, '
-        'city: $city, dept: $department)';
+        'city: $city, dept: $department, familyType: $familyType)';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is MatchFilter &&
+        other.gender == gender &&
         other.minAge == minAge &&
         other.maxAge == maxAge &&
         other.minHeight == minHeight &&
@@ -159,6 +176,7 @@ class MatchFilter {
         other.city == city &&
         other.occupation == occupation &&
         other.department == department &&
+        other.familyType == familyType &&
         other.verifiedOnly == verifiedOnly &&
         other.withPhotoOnly == withPhotoOnly &&
         other.onlineOnly == onlineOnly;
@@ -167,6 +185,7 @@ class MatchFilter {
   @override
   int get hashCode {
     return Object.hash(
+      gender,
       minAge,
       maxAge,
       minHeight,
@@ -177,6 +196,7 @@ class MatchFilter {
       city,
       occupation,
       department,
+      familyType,
       verifiedOnly,
       withPhotoOnly,
       onlineOnly,

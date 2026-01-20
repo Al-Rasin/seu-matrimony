@@ -1,0 +1,14 @@
+Feature Update: Family Type Filtering
+
+1.  **Filter Model**: Updated `MatchFilter` (`lib/data/models/filter_model.dart`) to include `familyType`.
+    -   Ensured all other fields (including `onlineOnly`) are preserved.
+
+2.  **Repository**: Updated `MatchRepository` (`lib/data/repositories/match_repository.dart`) to apply the `familyType` filter when querying matches.
+
+3.  **Controller**: Updated `FiltersController` (`lib/modules/matches/filters/filters_controller.dart`) to include `selectedFamilyType` logic and the list of family type options.
+
+4.  **UI**: Updated `FiltersScreen` (`lib/modules/matches/filters/filters_screen.dart`) to include a "Family Type" dropdown.
+
+**Verification**:
+-   Build successful.
+-   Users can now filter matches based on "Nuclear", "Joint", or "Other" family types.

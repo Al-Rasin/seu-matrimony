@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_text_styles.dart';
 
@@ -20,15 +21,9 @@ class LoadingWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                color ?? AppColors.primary,
-              ),
-            ),
+          SpinKitThreeBounce(
+            color: color ?? AppColors.primary,
+            size: size,
           ),
           if (message != null) ...[
             const SizedBox(height: 16),
@@ -66,7 +61,7 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black.withOpacity(0.3),
             child: LoadingWidget(message: message),
           ),
       ],

@@ -10,11 +10,13 @@ class FiltersController extends GetxController {
   final maxHeight = 190.0.obs;
 
   // Dropdown filters
+  final selectedGender = ''.obs;
   final selectedReligion = ''.obs;
   final selectedMaritalStatus = ''.obs;
   final selectedEducation = ''.obs;
   final selectedCity = ''.obs;
   final selectedDepartment = ''.obs;
+  final selectedFamilyType = ''.obs;
 
   // Toggle filters
   final verifiedOnly = false.obs;
@@ -22,12 +24,18 @@ class FiltersController extends GetxController {
   final onlineOnly = false.obs;
 
   // Filter options
+  final genders = [
+    '',
+    'Male',
+    'Female',
+  ];
+
   final religions = [
     '',
-    'Islam',
-    'Hinduism',
-    'Christianity',
-    'Buddhism',
+    'Muslim',
+    'Hindu',
+    'Christian',
+    'Buddhist',
     'Other',
   ];
 
@@ -36,15 +44,22 @@ class FiltersController extends GetxController {
     'Never Married',
     'Divorced',
     'Widowed',
-    'Awaiting Divorce',
+    'Separated',
+  ];
+
+  final familyTypes = [
+    '',
+    'Nuclear Family',
+    'Joint Family',
+    'Other',
   ];
 
   final educationLevels = [
     '',
     'High School',
     'Diploma',
-    'Bachelors',
-    'Masters',
+    'Bachelor\'s',
+    'Master\'s',
     'PhD',
     'Other',
   ];
@@ -87,6 +102,7 @@ class FiltersController extends GetxController {
     final args = Get.arguments as Map<String, dynamic>?;
     if (args != null && args['currentFilter'] != null) {
       final currentFilter = args['currentFilter'] as MatchFilter;
+      if (currentFilter.gender != null) selectedGender.value = currentFilter.gender!;
       if (currentFilter.minAge != null) minAge.value = currentFilter.minAge!;
       if (currentFilter.maxAge != null) maxAge.value = currentFilter.maxAge!;
       if (currentFilter.minHeight != null) minHeight.value = currentFilter.minHeight!;
@@ -96,6 +112,7 @@ class FiltersController extends GetxController {
       if (currentFilter.education != null) selectedEducation.value = currentFilter.education!;
       if (currentFilter.city != null) selectedCity.value = currentFilter.city!;
       if (currentFilter.department != null) selectedDepartment.value = currentFilter.department!;
+      if (currentFilter.familyType != null) selectedFamilyType.value = currentFilter.familyType!;
       if (currentFilter.verifiedOnly != null) verifiedOnly.value = currentFilter.verifiedOnly!;
       if (currentFilter.withPhotoOnly != null) withPhotoOnly.value = currentFilter.withPhotoOnly!;
       if (currentFilter.onlineOnly != null) onlineOnly.value = currentFilter.onlineOnly!;
@@ -103,6 +120,7 @@ class FiltersController extends GetxController {
   }
 
   void resetFilters() {
+    selectedGender.value = '';
     minAge.value = 18;
     maxAge.value = 40;
     minHeight.value = 150.0;
@@ -112,6 +130,7 @@ class FiltersController extends GetxController {
     selectedEducation.value = '';
     selectedCity.value = '';
     selectedDepartment.value = '';
+    selectedFamilyType.value = '';
     verifiedOnly.value = false;
     withPhotoOnly.value = false;
     onlineOnly.value = false;
@@ -119,6 +138,7 @@ class FiltersController extends GetxController {
 
   void applyFilters() {
     final filter = MatchFilter(
+      gender: selectedGender.value.isNotEmpty ? selectedGender.value : null,
       minAge: minAge.value != 18 ? minAge.value : null,
       maxAge: maxAge.value != 40 ? maxAge.value : null,
       minHeight: minHeight.value != 150.0 ? minHeight.value : null,
@@ -128,6 +148,7 @@ class FiltersController extends GetxController {
       education: selectedEducation.value.isNotEmpty ? selectedEducation.value : null,
       city: selectedCity.value.isNotEmpty ? selectedCity.value : null,
       department: selectedDepartment.value.isNotEmpty ? selectedDepartment.value : null,
+      familyType: selectedFamilyType.value.isNotEmpty ? selectedFamilyType.value : null,
       verifiedOnly: verifiedOnly.value ? true : null,
       withPhotoOnly: withPhotoOnly.value ? true : null,
       onlineOnly: onlineOnly.value ? true : null,
@@ -140,7 +161,8 @@ class FiltersController extends GetxController {
   }
 
   bool get hasActiveFilters {
-    return minAge.value != 18 ||
+    return selectedGender.value.isNotEmpty ||
+        minAge.value != 18 ||
         maxAge.value != 40 ||
         minHeight.value != 150.0 ||
         maxHeight.value != 190.0 ||
@@ -149,6 +171,7 @@ class FiltersController extends GetxController {
         selectedEducation.value.isNotEmpty ||
         selectedCity.value.isNotEmpty ||
         selectedDepartment.value.isNotEmpty ||
+        selectedFamilyType.value.isNotEmpty ||
         verifiedOnly.value ||
         withPhotoOnly.value ||
         onlineOnly.value;
@@ -156,6 +179,7 @@ class FiltersController extends GetxController {
 
   int get activeFilterCount {
     int count = 0;
+    if (selectedGender.value.isNotEmpty) count++;
     if (minAge.value != 18 || maxAge.value != 40) count++;
     if (minHeight.value != 150.0 || maxHeight.value != 190.0) count++;
     if (selectedReligion.value.isNotEmpty) count++;
@@ -163,6 +187,7 @@ class FiltersController extends GetxController {
     if (selectedEducation.value.isNotEmpty) count++;
     if (selectedCity.value.isNotEmpty) count++;
     if (selectedDepartment.value.isNotEmpty) count++;
+    if (selectedFamilyType.value.isNotEmpty) count++;
     if (verifiedOnly.value) count++;
     if (withPhotoOnly.value) count++;
     if (onlineOnly.value) count++;

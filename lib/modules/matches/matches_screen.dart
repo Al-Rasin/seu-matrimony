@@ -190,17 +190,12 @@ class MatchesScreen extends StatelessWidget {
                       top: Radius.circular(16),
                     ),
                   ),
-                  child: match.profilePhoto != null
+                  child: match.profilePhoto != null && match.profilePhoto!.isNotEmpty
                       ? ClipRRect(
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(16),
                           ),
-                          child: Image.memory(
-                            Uri.parse(match.profilePhoto!).data!.contentAsBytes(),
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
-                          ),
+                          child: _buildProfileImage(match.profilePhoto!),
                         )
                       : _buildPlaceholderImage(),
                 ),
@@ -325,12 +320,10 @@ class MatchesScreen extends StatelessWidget {
                       ],
                       if (match.currentCity != null) ...[
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildInfoChip(
-                            Icons.location_on,
-                            match.currentCity!,
-                            overflow: true,
-                          ),
+                        _buildInfoChip(
+                          Icons.location_on,
+                          match.currentCity!,
+                          overflow: true,
                         ),
                       ],
                     ],
@@ -358,6 +351,44 @@ class MatchesScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProfileImage(String photoUrl) {
+    // Check if it's a data URI (base64) or a network URL
+    if (photoUrl.startsWith('data:')) {
+      try {
+        final uri = Uri.parse(photoUrl);
+        if (uri.data != null) {
+          return Image.memory(
+            uri.data!.contentAsBytes(),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+          );
+        }
+      } catch (e) {
+        return _buildPlaceholderImage();
+      }
+    }
+
+    // Network URL
+    return Image.network(
+      photoUrl,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded /
+                    loadingProgress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
     );
   }
 
@@ -397,27 +428,41 @@ class MatchesScreen extends StatelessWidget {
     // Show different buttons based on interest status
     switch (match.interestStatus) {
       case InterestStatus.sent:
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.check_circle, color: AppColors.primary, size: 18),
-              SizedBox(width: 8),
-              Text(
-                'Interest Sent',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
+        return Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check_circle, color: AppColors.primary, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Interest Sent',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 12),
+            OutlinedButton(
+              onPressed: () => controller.cancelInterest(match.id),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+              ),
+              child: const Text('Cancel'),
+            ),
+          ],
         );
 
       case InterestStatus.received:

@@ -3,36 +3,39 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../constants/firebase_constants.dart';
+import '../../main.dart' show isFirebaseInitialized;
 import 'firestore_service.dart';
 import 'storage_service.dart';
 
 /// Firebase Authentication service
 class AuthService extends GetxService {
-  late final FirebaseAuth _auth;
+  FirebaseAuth? _auth;
   late final FirestoreService _firestoreService;
   late final StorageService _storageService;
 
-  FirebaseAuth get auth => _auth;
+  FirebaseAuth? get auth => _auth;
 
   /// Current authenticated user
-  User? get currentUser => _auth.currentUser;
+  User? get currentUser => _auth?.currentUser;
 
   /// Current user ID
-  String? get currentUserId => _auth.currentUser?.uid;
+  String? get currentUserId => _auth?.currentUser?.uid;
 
   /// Check if user is logged in
-  bool get isLoggedIn => _auth.currentUser != null;
+  bool get isLoggedIn => _auth?.currentUser != null;
 
   /// Stream of auth state changes
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<User?> get authStateChanges => _auth?.authStateChanges() ?? Stream.value(null);
 
   /// Stream of user changes (includes token refresh)
-  Stream<User?> get userChanges => _auth.userChanges();
+  Stream<User?> get userChanges => _auth?.userChanges() ?? Stream.value(null);
 
   @override
   void onInit() {
     super.onInit();
-    _auth = FirebaseAuth.instance;
+    if (isFirebaseInitialized) {
+      _auth = FirebaseAuth.instance;
+    }
     _firestoreService = Get.find<FirestoreService>();
     _storageService = Get.find<StorageService>();
   }
@@ -47,9 +50,10 @@ class AuthService extends GetxService {
     required String phone,
     String? profileFor,
   }) async {
+    if (_auth == null) return AuthResult.failure('Firebase not initialized');
     try {
       // Create user in Firebase Auth
-      final credential = await _auth.createUserWithEmailAndPassword(
+      final credential = await _auth!.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -61,6 +65,14 @@ class AuthService extends GetxService {
 
       // Update display name
       await user.updateDisplayName(fullName);
+
+      // Send email verification
+      try {
+        await user.sendEmailVerification();
+        debugPrint('Verification email sent to ${user.email}');
+      } catch (e) {
+        debugPrint('CRITICAL: Failed to send verification email: $e');
+      }
 
       // Create user document in Firestore
       await _firestoreService.createWithId(
@@ -96,8 +108,9 @@ class AuthService extends GetxService {
     required String email,
     required String password,
   }) async {
+    if (_auth == null) return AuthResult.failure('Firebase not initialized');
     try {
-      final credential = await _auth.signInWithEmailAndPassword(
+      final credential = await _auth!.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -107,8 +120,9 @@ class AuthService extends GetxService {
         return AuthResult.failure('Failed to sign in');
       }
 
-      // Update online status
+      // Update online status and sync email verification status
       await _updateOnlineStatus(user.uid, true);
+      await _syncEmailVerificationStatus(user);
 
       // Fetch and save user data
       final userData = await _firestoreService.getById(
@@ -147,7 +161,11 @@ class AuthService extends GetxService {
     required Function(String) onCodeAutoRetrievalTimeout,
     int? forceResendingToken,
   }) async {
-    await _auth.verifyPhoneNumber(
+    if (_auth == null) {
+      onVerificationFailed('Firebase not initialized');
+      return;
+    }
+    await _auth!.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: onVerificationCompleted,
       verificationFailed: (e) => onVerificationFailed(_getAuthErrorMessage(e.code)),
@@ -163,13 +181,14 @@ class AuthService extends GetxService {
     required String verificationId,
     required String smsCode,
   }) async {
+    if (_auth == null) return AuthResult.failure('Firebase not initialized');
     try {
       final credential = PhoneAuthProvider.credential(
         verificationId: verificationId,
         smsCode: smsCode,
       );
 
-      final result = await _auth.signInWithCredential(credential);
+      final result = await _auth!.signInWithCredential(credential);
       final user = result.user;
 
       if (user == null) {
@@ -211,8 +230,9 @@ class AuthService extends GetxService {
 
   /// Send password reset email
   Future<AuthResult> sendPasswordResetEmail(String email) async {
+    if (_auth == null) return AuthResult.failure('Firebase not initialized');
     try {
-      await _auth.sendPasswordResetEmail(email: email);
+      await _auth!.sendPasswordResetEmail(email: email);
       return AuthResult.success(null, message: 'Password reset email sent');
     } on FirebaseAuthException catch (e) {
       return AuthResult.failure(_getAuthErrorMessage(e.code));
@@ -227,8 +247,9 @@ class AuthService extends GetxService {
     required String code,
     required String newPassword,
   }) async {
+    if (_auth == null) return AuthResult.failure('Firebase not initialized');
     try {
-      await _auth.confirmPasswordReset(code: code, newPassword: newPassword);
+      await _auth!.confirmPasswordReset(code: code, newPassword: newPassword);
       return AuthResult.success(null, message: 'Password reset successful');
     } on FirebaseAuthException catch (e) {
       return AuthResult.failure(_getAuthErrorMessage(e.code));
@@ -242,8 +263,9 @@ class AuthService extends GetxService {
 
   /// Send email verification
   Future<AuthResult> sendEmailVerification() async {
+    if (_auth == null) return AuthResult.failure('Firebase not initialized');
     try {
-      final user = _auth.currentUser;
+      final user = _auth!.currentUser;
       if (user == null) {
         return AuthResult.failure('No user logged in');
       }
@@ -260,8 +282,9 @@ class AuthService extends GetxService {
 
   /// Check if email is verified
   Future<bool> isEmailVerified() async {
-    await _auth.currentUser?.reload();
-    return _auth.currentUser?.emailVerified ?? false;
+    if (_auth == null) return false;
+    await _auth!.currentUser?.reload();
+    return _auth!.currentUser?.emailVerified ?? false;
   }
 
   // ==================== USER DATA OPERATIONS ====================
@@ -300,13 +323,20 @@ class AuthService extends GetxService {
     );
   }
 
-  /// Check if user profile is complete
+  /// Check if user has completed basic profile info (enough to access the app)
+  /// User can complete remaining profile from home screen
   Future<bool> isProfileComplete() async {
     final userData = await getCurrentUserData();
     if (userData == null) return false;
 
-    final completion = userData[FirebaseConstants.fieldProfileCompletion] as int?;
-    return completion != null && completion >= 100;
+    // Check if basic required fields are present: gender and dateOfBirth/dob
+    final hasGender = userData[FirebaseConstants.fieldGender] != null &&
+        userData[FirebaseConstants.fieldGender].toString().isNotEmpty;
+    final hasDob = (userData[FirebaseConstants.fieldDateOfBirth] != null &&
+            userData[FirebaseConstants.fieldDateOfBirth].toString().isNotEmpty) ||
+        (userData['dob'] != null && userData['dob'].toString().isNotEmpty);
+
+    return hasGender && hasDob;
   }
 
   /// Get user role
@@ -326,7 +356,9 @@ class AuthService extends GetxService {
       await _updateOnlineStatus(userId, false);
     }
 
-    await _auth.signOut();
+    if (_auth != null) {
+      await _auth!.signOut();
+    }
     await _storageService.clearAuthData();
   }
 
@@ -345,6 +377,29 @@ class AuthService extends GetxService {
     } catch (e) {
       debugPrint('Failed to update online status: $e');
     }
+  }
+
+  /// Sync email verification status from Firebase Auth to Firestore
+  Future<void> _syncEmailVerificationStatus(User user) async {
+    try {
+      await user.reload();
+      final isEmailVerified = user.emailVerified;
+      await _firestoreService.update(
+        collection: FirebaseConstants.usersCollection,
+        documentId: user.uid,
+        data: {
+          FirebaseConstants.fieldIsEmailVerified: isEmailVerified,
+        },
+      );
+    } catch (e) {
+      debugPrint('Failed to sync email verification status: $e');
+    }
+  }
+
+  /// Check if user's email is verified (from Firestore)
+  Future<bool> isUserEmailVerifiedInFirestore() async {
+    final userData = await getCurrentUserData();
+    return userData?[FirebaseConstants.fieldIsEmailVerified] == true;
   }
 
   String _getAuthErrorMessage(String code) {

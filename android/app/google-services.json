@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "677882864073",
+    "project_id": "seu-matrimony",
+    "storage_bucket": "seu-matrimony.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:677882864073:android:3b3df4770065bcd4078818",
+        "android_client_info": {
+          "package_name": "com.example.seu_matrimony"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARNjY2yl7n6L6_d2aA5n2pSXHwkWCb-Yg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

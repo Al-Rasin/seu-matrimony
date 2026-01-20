@@ -5,6 +5,8 @@ import 'dart:typed_data';
 class ImageUtils {
   ImageUtils._();
 
+  static final Map<String, Uint8List> _byteCache = {};
+
   /// Convert bytes to base64 string
   static String bytesToBase64(Uint8List bytes) {
     return base64Encode(bytes);
@@ -12,9 +14,29 @@ class ImageUtils {
 
   /// Convert base64 string to bytes
   static Uint8List base64ToBytes(String base64String) {
+    if (_byteCache.containsKey(base64String)) {
+      return _byteCache[base64String]!;
+    }
     // Remove data URL prefix if present
     final cleanBase64 = removeDataUrlPrefix(base64String);
-    return base64Decode(cleanBase64);
+    final bytes = base64Decode(cleanBase64);
+    
+    // Simple cache management - clear if too many items
+    if (_byteCache.length > 100) {
+      _byteCache.clear();
+    }
+    _byteCache[base64String] = bytes;
+    return bytes;
+  }
+
+  /// Get cached bytes or decode
+  static Uint8List getCachedBytes(String base64String) {
+    return base64ToBytes(base64String);
+  }
+
+  /// Clear image cache
+  static void clearCache() {
+    _byteCache.clear();
   }
 
   /// Create a data URL from base64 string

@@ -2,9 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// User model for SEU Matrimony app
 class UserModel {
-
-  
-  const UserModel({
+const UserModel({
     required this.id,
     required this.username,
     required this.fullName,
@@ -14,6 +12,7 @@ class UserModel {
     this.role = UserRole.user,
     this.profileStatus = ProfileStatus.pending,
     this.isVerified = false,
+    this.isEmailVerified = false,
     this.isOnline = false,
     this.lastSeen,
     required this.createdAt,
@@ -40,8 +39,8 @@ class UserModel {
     this.bio,
     this.photos,
     this.profileCompletionPercentage = 0,
-  }); 
-  
+  });
+
   final String id;
   final String username;
   final String fullName;
@@ -51,6 +50,7 @@ class UserModel {
   final UserRole role;
   final ProfileStatus profileStatus;
   final bool isVerified;
+  final bool isEmailVerified;
   final bool isOnline;
   final DateTime? lastSeen;
   final DateTime createdAt;
@@ -88,6 +88,7 @@ class UserModel {
   // Profile Completion
   final int profileCompletionPercentage;
 
+  
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -100,6 +101,7 @@ class UserModel {
       role: UserRole.fromString(json['role']?.toString()),
       profileStatus: ProfileStatus.fromString(json['profile_status']?.toString() ?? json['profileStatus']?.toString()),
       isVerified: json['is_verified'] == true || json['isVerified'] == true,
+      isEmailVerified: json['is_email_verified'] == true || json['isEmailVerified'] == true,
       isOnline: json['is_online'] == true || json['isOnline'] == true,
       lastSeen: json['last_seen'] != null ? DateTime.tryParse(json['last_seen'].toString()) : null,
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? json['createdAt']?.toString() ?? '') ?? DateTime.now(),
@@ -152,6 +154,7 @@ class UserModel {
       role: UserRole.fromString(data['role']?.toString()),
       profileStatus: ProfileStatus.fromString(data['profileStatus']?.toString()),
       isVerified: data['isVerified'] == true,
+      isEmailVerified: data['isEmailVerified'] == true,
       isOnline: data['isOnline'] == true,
       lastSeen: timestampToDateTime(data['lastSeen']),
       createdAt: timestampToDateTime(data['createdAt']) ?? DateTime.now(),
@@ -197,6 +200,7 @@ class UserModel {
       'role': role.value,
       'profileStatus': profileStatus.value,
       'isVerified': isVerified,
+      'isEmailVerified': isEmailVerified,
       'isOnline': isOnline,
       'lastSeen': lastSeen != null ? Timestamp.fromDate(lastSeen!) : null,
       'gender': gender,
@@ -235,6 +239,7 @@ class UserModel {
       'role': role.value,
       'profile_status': profileStatus.value,
       'is_verified': isVerified,
+      'is_email_verified': isEmailVerified,
       'is_online': isOnline,
       'last_seen': lastSeen?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
@@ -274,6 +279,7 @@ class UserModel {
     UserRole? role,
     ProfileStatus? profileStatus,
     bool? isVerified,
+    bool? isEmailVerified,
     bool? isOnline,
     DateTime? lastSeen,
     DateTime? createdAt,
@@ -311,6 +317,7 @@ class UserModel {
       role: role ?? this.role,
       profileStatus: profileStatus ?? this.profileStatus,
       isVerified: isVerified ?? this.isVerified,
+      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       isOnline: isOnline ?? this.isOnline,
       lastSeen: lastSeen ?? this.lastSeen,
       createdAt: createdAt ?? this.createdAt,
