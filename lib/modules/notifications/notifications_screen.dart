@@ -90,6 +90,9 @@ class NotificationsScreen extends GetView<NotificationController> {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) async {
+        return await _showDeleteConfirmation();
+      },
       onDismissed: (_) {
         if (notification['id'] != null) {
           controller.deleteNotification(notification['id']);
@@ -118,14 +121,14 @@ class NotificationsScreen extends GetView<NotificationController> {
             if (!isRead && notification['id'] != null) {
               controller.markAsRead(notification['id']);
             }
-            
+
             // Handle navigation based on type and data
             final type = notification[FirebaseConstants.fieldType];
             final data = notification[FirebaseConstants.fieldData] as Map<String, dynamic>?;
 
             if (data != null && data['id'] != null) {
               final targetId = data['id'];
-              
+
               if (type == 'interest_received' || type == 'interest_accepted') {
                 Get.toNamed(AppRoutes.profileDetail, arguments: {'matchId': targetId});
               } else if (type == 'message_received') {
@@ -137,5 +140,28 @@ class NotificationsScreen extends GetView<NotificationController> {
         ),
       ),
     );
+  }
+
+  Future<bool> _showDeleteConfirmation() async {
+    final result = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Delete Notification'),
+        content: const Text('Are you sure you want to delete this notification?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Get.back(result: true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 }

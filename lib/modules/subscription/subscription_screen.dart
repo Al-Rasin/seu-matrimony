@@ -87,9 +87,7 @@ class SubscriptionScreen extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: isPopular
-                ? AppColors.primary.withValues(alpha: 0.05)
-                : Colors.white,
+            color: isPopular ? AppColors.primary.withValues(alpha: 0.05) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isPopular ? AppColors.primary : AppColors.border,
@@ -104,9 +102,7 @@ class SubscriptionScreen extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(price,
-                      style: AppTextStyles.h2
-                          .copyWith(color: AppColors.primary)),
+                  Text(price, style: AppTextStyles.h2.copyWith(color: AppColors.primary)),
                   Text(period, style: AppTextStyles.bodySmall),
                 ],
               ),
@@ -115,8 +111,7 @@ class SubscriptionScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
                       children: [
-                        const Icon(Icons.check_circle,
-                            color: AppColors.success, size: 20),
+                        const Icon(Icons.check_circle, color: AppColors.success, size: 20),
                         const SizedBox(width: 8),
                         Text(f, style: AppTextStyles.bodySmall),
                       ],
@@ -139,13 +134,11 @@ class SubscriptionScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: const BoxDecoration(
                 color: AppColors.primary,
-                borderRadius:
-                    BorderRadius.vertical(bottom: Radius.circular(8)),
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
               ),
               child: Text(
                 'POPULAR',
-                style:
-                    AppTextStyles.caption.copyWith(color: Colors.white),
+                style: AppTextStyles.caption.copyWith(color: Colors.white),
               ),
             ),
           ),
