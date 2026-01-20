@@ -336,6 +336,55 @@ class UserRepository {
     }
   }
 
+  // ==================== PRIVACY SETTINGS ====================
+
+  /// Get user privacy settings
+  Future<Map<String, dynamic>> getPrivacySettings() async {
+    if (useFirebase) {
+      final userId = authService.currentUserId;
+      if (userId == null) return {};
+
+      final userData = await firestoreService.getById(
+        collection: FirebaseConstants.usersCollection,
+        documentId: userId,
+      );
+
+      if (userData == null) return {};
+
+      return userData[FirebaseConstants.fieldPrivacySettings] as Map<String, dynamic>? ?? {};
+    }
+
+    // Mock data
+    await Future.delayed(const Duration(milliseconds: 300));
+    return {
+      FirebaseConstants.fieldPrivacyProfilePhoto: FirebaseConstants.privacyAll,
+      FirebaseConstants.fieldPrivacyContactInfo: FirebaseConstants.privacyConnected,
+      FirebaseConstants.fieldPrivacyShowOnlineStatus: true,
+      FirebaseConstants.fieldPrivacyReadReceipts: true,
+      FirebaseConstants.fieldPrivacyIsProfileVisible: true,
+    };
+  }
+
+  /// Update privacy settings
+  Future<void> updatePrivacySettings(Map<String, dynamic> settings) async {
+    if (useFirebase) {
+      final userId = authService.currentUserId;
+      if (userId == null) return;
+
+      await firestoreService.update(
+        collection: FirebaseConstants.usersCollection,
+        documentId: userId,
+        data: {
+          FirebaseConstants.fieldPrivacySettings: settings,
+        },
+      );
+      return;
+    }
+
+    // Mock data
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   // ==================== DASHBOARD STATS ====================
 
   /// Get dashboard statistics

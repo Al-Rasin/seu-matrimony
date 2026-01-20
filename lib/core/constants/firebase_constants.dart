@@ -76,6 +76,20 @@ class FirebaseConstants {
   static const String fieldFcmToken = 'fcmToken';
   static const String fieldCreatedAt = 'createdAt';
   static const String fieldUpdatedAt = 'updatedAt';
+  
+  // ==================== PRIVACY FIELDS ====================
+  
+  static const String fieldPrivacySettings = 'privacySettings';
+  static const String fieldPrivacyProfilePhoto = 'profilePhoto';
+  static const String fieldPrivacyContactInfo = 'contactInfo';
+  static const String fieldPrivacyShowOnlineStatus = 'showOnlineStatus';
+  static const String fieldPrivacyReadReceipts = 'readReceipts';
+  static const String fieldPrivacyIsProfileVisible = 'isProfileVisible';
+
+  static const String privacyAll = 'all';
+  static const String privacyConnected = 'connected';
+  static const String privacyRequest = 'request';
+  static const String privacyNone = 'none';
 
   // ==================== INTEREST FIELDS ====================
 

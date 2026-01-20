@@ -29,6 +29,7 @@ import '../../modules/profile/my_profile/my_profile_screen.dart';
 import '../../modules/profile/edit_profile/edit_profile_screen.dart';
 import '../../modules/subscription/subscription_screen.dart';
 import '../../modules/settings/settings_screen.dart';
+import '../../modules/settings/privacy_settings/privacy_settings_screen.dart';
 import '../../modules/notifications/notifications_screen.dart';
 import '../../modules/admin/dashboard/admin_dashboard_screen.dart';
 import '../../modules/admin/user_management/user_management_screen.dart';
@@ -143,6 +144,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.settings,
       page: () => const SettingsScreen(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.privacySettings,
+      page: () => const PrivacySettingsScreen(),
       transition: Transition.cupertino,
     ),
     GetPage(
