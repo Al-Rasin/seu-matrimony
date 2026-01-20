@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/repositories/chat_repository.dart';
-import '../../../core/services/storage_service.dart';
+import '../../../data/repositories/auth_repository.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../data/models/message_model.dart';
+import '../../../data/models/conversation_model.dart';
+import 'dart:async';
 
 class ChatDetailController extends GetxController {
   final ChatRepository _chatRepository = Get.find<ChatRepository>();
-  final StorageService _storageService = Get.find<StorageService>();
+  final AuthService _authService = Get.find<AuthService>();
+  final AuthRepository _authRepository = Get.find<AuthRepository>();
 
   final messageController = TextEditingController();
-  final messages = <Map<String, dynamic>>[].obs;
-  final recipientName = ''.obs;
+  final messages = <MessageModel>[].obs;
+  final conversation = Rxn<ConversationModel>();
   final isLoading = false.obs;
-
+  final isOtherTyping = false.obs;
+  
+  StreamSubscription? _messagesSubscription;
+  StreamSubscription? _typingSubscription;
+  Timer? _typingTimer;
   String? conversationId;
-  String get currentUserId => _storageService.userId ?? '';
+  String get currentUserId => _authService.currentUserId ?? '';
 
   @override
   void onInit() {
@@ -21,36 +31,109 @@ class ChatDetailController extends GetxController {
     final args = Get.arguments as Map<String, dynamic>?;
     conversationId = args?['conversationId'];
     if (conversationId != null) {
-      loadMessages();
+      _loadConversationDetails();
+      _listenToMessages();
+      _listenToTypingStatus();
+      _markAsRead();
     }
   }
 
-  Future<void> loadMessages() async {
+  void onTextChanged(String value) {
     if (conversationId == null) return;
+    
+    // Set typing status to true
+    _chatRepository.setTypingStatus(conversationId!, true);
+    
+    // Reset timer to set typing status to false after 3 seconds of inactivity
+    _typingTimer?.cancel();
+    _typingTimer = Timer(const Duration(seconds: 3), () {
+      _chatRepository.setTypingStatus(conversationId!, false);
+    });
+  }
 
+  void _listenToTypingStatus() {
+    if (conversationId == null) return;
+    
+    _typingSubscription = _chatRepository.streamTypingStatus(conversationId!).listen((typingMap) {
+      final otherId = conversation.value?.getOtherParticipantId(currentUserId);
+      if (otherId != null && otherId.isNotEmpty) {
+        final lastTyped = typingMap[otherId];
+        if (lastTyped != null) {
+          // If Firestore timestamp is recent (within last 5 seconds)
+          DateTime typedAt;
+          if (lastTyped is Timestamp) {
+            typedAt = lastTyped.toDate();
+          } else {
+            typedAt = DateTime.now().subtract(const Duration(seconds: 10));
+          }
+          
+          isOtherTyping.value = DateTime.now().difference(typedAt).inSeconds < 5;
+        } else {
+          isOtherTyping.value = false;
+        }
+      }
+    });
+  }
+
+  Future<void> _loadConversationDetails() async {
     try {
-      isLoading.value = true;
-      final response = await _chatRepository.getMessages(conversationId!);
-      messages.value = List<Map<String, dynamic>>.from(response['data'] ?? []);
-
-      final conversation = await _chatRepository.getConversation(conversationId!);
-      recipientName.value = conversation['recipientName'] ?? 'Unknown';
+      final response = await _chatRepository.getConversation(conversationId!);
+      if (response['success']) {
+        conversation.value = ConversationModel.fromFirestore(response['data']);
+      }
     } catch (e) {
-      // Handle error
-    } finally {
-      isLoading.value = false;
+      debugPrint('Error loading conversation: $e');
     }
+  }
+
+  void _listenToMessages() {
+    if (conversationId == null) return;
+    
+    isLoading.value = true;
+    _messagesSubscription = _chatRepository.streamMessages(conversationId!).listen(
+      (messageList) {
+        messages.value = messageList;
+        isLoading.value = false;
+        _markAsRead(); // Mark as read when new messages arrive while in chat
+      },
+      onError: (error) {
+        isLoading.value = false;
+        Get.snackbar('Error', 'Failed to load messages');
+      },
+    );
+  }
+
+  Future<void> _markAsRead() async {
+    if (conversationId == null) return;
+    await _chatRepository.markAsRead(conversationId!);
+  }
+
+  /// Check if user is verified by admin (fetches fresh data from Firestore)
+  Future<bool> _checkAdminVerification() async {
+    final isVerified = await _authRepository.isAdminVerified();
+    if (!isVerified) {
+      Get.snackbar(
+        'Account Not Verified',
+        'Your account is pending verification by admin. You can complete your profile while waiting.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+      return false;
+    }
+    return true;
   }
 
   Future<void> sendMessage() async {
     if (conversationId == null || messageController.text.trim().isEmpty) return;
+    if (!await _checkAdminVerification()) return;
 
     try {
       final content = messageController.text.trim();
       messageController.clear();
 
       await _chatRepository.sendMessage(conversationId!, content);
-      loadMessages();
     } catch (e) {
       Get.snackbar('Error', 'Failed to send message');
     }
@@ -66,6 +149,13 @@ class ChatDetailController extends GetxController {
 
   @override
   void onClose() {
+    _messagesSubscription?.cancel();
+    _typingSubscription?.cancel();
+    _typingTimer?.cancel();
+    // Clear typing status when leaving chat
+    if (conversationId != null) {
+      _chatRepository.setTypingStatus(conversationId!, false);
+    }
     messageController.dispose();
     super.onClose();
   }

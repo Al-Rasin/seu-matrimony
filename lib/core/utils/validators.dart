@@ -74,7 +74,7 @@ class Validators {
     // Remove spaces and dashes
     final cleaned = value.replaceAll(RegExp(r'[\s-]'), '');
     // Bangladesh phone: 01XXXXXXXXX (11 digits) or +8801XXXXXXXXX
-    final phoneRegex = RegExp(r'^(\+?880)?1[3-9]\d{8}$');
+    final phoneRegex = RegExp(r'^(\+?880|0)1[3-9]\d{8}$');
     if (!phoneRegex.hasMatch(cleaned)) {
       return 'Please enter a valid phone number';
     }

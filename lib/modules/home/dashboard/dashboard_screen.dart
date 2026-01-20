@@ -31,6 +31,10 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Verification pending banner (only show after data is loaded)
+              Obx(() => !controller.isLoading.value && !controller.isAdminVerified.value
+                  ? _buildVerificationPendingBanner()
+                  : const SizedBox.shrink()),
               // Welcome section
               Text(
                 'Welcome back,',
@@ -42,23 +46,9 @@ class DashboardScreen extends StatelessWidget {
                     controller.userName.value,
                     style: AppTextStyles.h3,
                   )),
-              const SizedBox(height: 16),
-              // Search bar
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search by criteria',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.grey.shade100,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
               const SizedBox(height: 20),
-              // Profile completion card
-              Obx(() => controller.profileCompletion.value < 100
+              // Profile completion card (only show after data is loaded)
+              Obx(() => !controller.isLoading.value && controller.profileCompletion.value < 100
                   ? _buildProfileCompletionCard(controller)
                   : const SizedBox.shrink()),
               const SizedBox(height: 20),
@@ -72,6 +62,58 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildVerificationPendingBanner() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.hourglass_empty,
+              color: Colors.orange.shade700,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Verification Pending',
+                  style: TextStyle(
+                    color: Colors.orange.shade800,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your account is being reviewed by admin. You can complete your profile while waiting.',
+                  style: TextStyle(
+                    color: Colors.orange.shade700,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -114,7 +156,7 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () {},
+            onPressed: () => Get.toNamed('/edit-profile'),
             child: const Text(
               'Complete',
               style: TextStyle(color: Colors.white),
@@ -258,12 +300,8 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: match.profilePhoto != null
-                          ? Image.memory(
-                              Uri.parse(match.profilePhoto!).data!.contentAsBytes(),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                            )
+                      child: match.profilePhoto != null && match.profilePhoto!.isNotEmpty
+                          ? _buildProfileImage(match.profilePhoto!)
                           : _buildPlaceholder(),
                     ),
                     // Online indicator
@@ -325,6 +363,28 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProfileImage(String photoUrl) {
+    if (photoUrl.startsWith('data:')) {
+      try {
+        final uri = Uri.parse(photoUrl);
+        if (uri.data != null) {
+          return Image.memory(
+            uri.data!.contentAsBytes(),
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _buildPlaceholder(),
+          );
+        }
+      } catch (e) {
+        return _buildPlaceholder();
+      }
+    }
+    return Image.network(
+      photoUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _buildPlaceholder(),
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get_storage/get_storage.dart';
+import 'firebase_options.dart';
 import 'app/app.dart';
 
 /// Flag to track if Firebase is available
@@ -26,13 +27,15 @@ Future<void> main() async {
     ),
   );
 
-  // Initialize Firebase (optional - will work without config for development)
+  // Initialize Firebase
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     isFirebaseInitialized = true;
     debugPrint('Firebase initialized successfully');
   } catch (e) {
-    debugPrint('Firebase not configured - running without Firebase: $e');
+    debugPrint('Firebase initialization failed: $e');
     // App will continue without Firebase features
   }
 

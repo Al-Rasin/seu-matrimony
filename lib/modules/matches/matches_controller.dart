@@ -3,12 +3,15 @@ import 'package:get/get.dart';
 import '../../data/models/match_model.dart';
 import '../../data/models/paginated_response.dart';
 import '../../data/repositories/match_repository.dart';
+import '../../data/repositories/auth_repository.dart';
+import 'dart:async';
 
 /// Filter tab options
 enum MatchTab { all, matchPreference, saved, sentInterests, receivedInterests }
 
 class MatchesController extends GetxController {
   final MatchRepository _matchRepository = Get.find<MatchRepository>();
+  final AuthRepository _authRepository = Get.find<AuthRepository>();
 
   // Matches list
   final matches = <MatchModel>[].obs;
@@ -28,6 +31,9 @@ class MatchesController extends GetxController {
   final currentFilter = Rx<MatchFilter>(MatchFilter.empty);
   final selectedTab = MatchTab.all.obs;
 
+  // Stream subscriptions
+  StreamSubscription? _interestsSubscription;
+
   // Scroll controller for pagination
   late ScrollController scrollController;
 
@@ -40,6 +46,7 @@ class MatchesController extends GetxController {
 
   @override
   void onClose() {
+    _interestsSubscription?.cancel();
     scrollController.dispose();
     searchController.dispose();
     super.onClose();
@@ -54,6 +61,19 @@ class MatchesController extends GetxController {
     }
 
     if (isLoading.value || (!_hasMorePages && !refresh)) return;
+
+    // Cancel existing subscription when loading new tab
+    _interestsSubscription?.cancel();
+
+    if (selectedTab.value == MatchTab.sentInterests) {
+      _listenToSentInterests();
+      return;
+    }
+
+    if (selectedTab.value == MatchTab.receivedInterests) {
+      _listenToReceivedInterests();
+      return;
+    }
 
     try {
       isLoading.value = true;
@@ -90,18 +110,8 @@ class MatchesController extends GetxController {
             perPage: _perPage,
           );
           break;
-        case MatchTab.sentInterests:
-          response = await _matchRepository.getSentInterests(
-            page: _currentPage,
-            perPage: _perPage,
-          );
-          break;
-        case MatchTab.receivedInterests:
-          response = await _matchRepository.getReceivedInterests(
-            page: _currentPage,
-            perPage: _perPage,
-          );
-          break;
+        default:
+          response = PaginatedResponse(items: [], pagination: PaginationMeta.empty());
       }
 
       if (_currentPage == 1) {
@@ -118,6 +128,24 @@ class MatchesController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _listenToSentInterests() {
+    isLoading.value = true;
+    _interestsSubscription = _matchRepository.streamSentInterests().listen((list) {
+      matches.value = list;
+      isLoading.value = false;
+      _hasMorePages = false; // Streams handle all data for now
+    });
+  }
+
+  void _listenToReceivedInterests() {
+    isLoading.value = true;
+    _interestsSubscription = _matchRepository.streamReceivedInterests().listen((list) {
+      matches.value = list;
+      isLoading.value = false;
+      _hasMorePages = false;
+    });
   }
 
   /// Load more matches (pagination)
@@ -184,6 +212,8 @@ class MatchesController extends GetxController {
 
   /// Send interest to a match
   Future<void> sendInterest(String matchId) async {
+    if (!await _checkAdminVerification()) return;
+
     try {
       final success = await _matchRepository.sendInterest(matchId);
       if (success) {
@@ -213,6 +243,47 @@ class MatchesController extends GetxController {
     }
   }
 
+  /// Cancel/unsend interest
+  Future<void> cancelInterest(String matchId) async {
+    if (!await _checkAdminVerification()) return;
+
+    try {
+      final success = await _matchRepository.cancelInterest(matchId);
+      if (success) {
+        // Update local state
+        final index = matches.indexWhere((m) => m.id == matchId);
+        if (index != -1) {
+          matches[index] = matches[index].copyWith(
+            interestStatus: InterestStatus.none,
+          );
+        }
+        Get.snackbar(
+          'Success',
+          'Interest cancelled',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
+        Get.snackbar(
+          'Error',
+          'Interest not found',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to cancel interest: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   /// Skip/decline a match (just removes from view)
   void skipMatch(String matchId) {
     matches.removeWhere((m) => m.id == matchId);
@@ -220,6 +291,8 @@ class MatchesController extends GetxController {
 
   /// Toggle shortlist
   Future<void> toggleShortlist(String matchId) async {
+    if (!await _checkAdminVerification()) return;
+
     final index = matches.indexWhere((m) => m.id == matchId);
     if (index == -1) return;
 
@@ -235,7 +308,12 @@ class MatchesController extends GetxController {
       }
 
       if (success) {
-        matches[index] = match.copyWith(isShortlisted: !isCurrentlyShortlisted);
+        // If on Saved tab and removing from shortlist, remove from list
+        if (selectedTab.value == MatchTab.saved && isCurrentlyShortlisted) {
+          matches.removeAt(index);
+        } else {
+          matches[index] = match.copyWith(isShortlisted: !isCurrentlyShortlisted);
+        }
         Get.snackbar(
           'Success',
           isCurrentlyShortlisted ? 'Removed from shortlist' : 'Added to shortlist',
@@ -253,6 +331,8 @@ class MatchesController extends GetxController {
 
   /// Accept interest
   Future<void> acceptInterest(String matchId) async {
+    if (!await _checkAdminVerification()) return;
+
     try {
       final success = await _matchRepository.acceptInterest(matchId);
       if (success) {
@@ -281,6 +361,8 @@ class MatchesController extends GetxController {
 
   /// Reject interest
   Future<void> rejectInterest(String matchId) async {
+    if (!await _checkAdminVerification()) return;
+
     try {
       final success = await _matchRepository.rejectInterest(matchId);
       if (success) {
@@ -308,6 +390,23 @@ class MatchesController extends GetxController {
   /// Navigate to filters screen
   void openFilters() {
     Get.toNamed('/filters', arguments: {'currentFilter': currentFilter.value});
+  }
+
+  /// Check if user is verified by admin (fetches fresh data from Firestore)
+  Future<bool> _checkAdminVerification() async {
+    final isVerified = await _authRepository.isAdminVerified();
+    if (!isVerified) {
+      Get.snackbar(
+        'Account Not Verified',
+        'Your account is pending verification by admin. You can complete your profile while waiting.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+      return false;
+    }
+    return true;
   }
 
   /// Get tab display name

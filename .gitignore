@@ -51,5 +51,5 @@ app.*.map.json
 .env
 .env.*
 
-# Scripts folder
-/scripts/
+# Scripts folder (local testing only)
+scripts/

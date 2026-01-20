@@ -4,8 +4,8 @@ import '../constants/storage_keys.dart';
 class StorageService {
   late final GetStorage _box;
 
-  StorageService() {
-    _box = GetStorage();
+  StorageService({GetStorage? box}) {
+    _box = box ?? GetStorage();
   }
 
   static Future<void> init() async {

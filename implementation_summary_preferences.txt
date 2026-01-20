@@ -1,0 +1,22 @@
+Feature Implemented: Partner Preferences in Edit Profile
+
+1.  **New Screen**: Created `lib/modules/profile/edit_profile/edit_partner_preferences_screen.dart`.
+    -   Includes UI for:
+        -   Age Range (RangeSlider)
+        -   Height Range (Min/Max TextFields)
+        -   Marital Status (Dropdown)
+        -   Religion (Dropdown)
+
+2.  **Controller Updated**: Modified `lib/modules/profile/edit_profile/edit_profile_controller.dart` to:
+    -   Add controllers for partner preferences.
+    -   Implement `_loadPreferences` to fetch data (using `partnerAgeMin`, `partnerAgeMax`, etc.).
+    -   Implement `savePreferences` to update data in Firestore.
+    -   Implement `editPreferences` navigation.
+
+3.  **Logic**:
+    -   Data is stored as individual fields in the user document (flattened structure) to allow for easy querying (e.g., `partnerAgeMin`).
+
+**Verification**:
+-   Build successful.
+-   "Coming Soon" placeholder removed.
+-   Full Edit Profile suite is now complete.

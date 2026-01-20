@@ -69,6 +69,14 @@ class PersonalDetailsStep extends StatelessWidget {
                 onChanged: (value) => controller.religion.value = value,
               )),
           const SizedBox(height: 16),
+          Obx(() => SimpleDropdown(
+                label: 'Family Type',
+                hint: 'Select family type',
+                value: controller.familyType.value,
+                items: const ['Nuclear', 'Joint', 'Other'],
+                onChanged: (value) => controller.familyType.value = value,
+              )),
+          const SizedBox(height: 16),
           CustomTextField(
             label: 'Student ID',
             hint: 'Enter your SEU student ID',

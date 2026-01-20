@@ -42,76 +42,69 @@ class MatchRepository {
       return _getMockMatches(page: page, perPage: perPage, filter: filter);
     }
 
-    // Build Firestore query
-    final filters = <QueryFilter>[];
+    // Get current user's gender to filter by opposite gender by default
+    final currentUserGender = await _getCurrentUserGender();
+    final oppositeGender = _getOppositeGender(currentUserGender);
 
-    // Exclude current user
-    if (currentUserId != null) {
-      filters.add(QueryFilter(
-        field: 'id',
-        operator: QueryOperator.isNotEqualTo,
-        value: currentUserId,
-      ));
-    }
-
-    // Apply filters
-    if (filter != null) {
-      if (filter.religion != null && filter.religion!.isNotEmpty) {
-        filters.add(QueryFilter(
-          field: FirebaseConstants.fieldReligion,
-          operator: QueryOperator.isEqualTo,
-          value: filter.religion,
-        ));
-      }
-      if (filter.maritalStatus != null && filter.maritalStatus!.isNotEmpty) {
-        filters.add(QueryFilter(
-          field: FirebaseConstants.fieldMaritalStatus,
-          operator: QueryOperator.isEqualTo,
-          value: filter.maritalStatus,
-        ));
-      }
-      if (filter.city != null && filter.city!.isNotEmpty) {
-        filters.add(QueryFilter(
-          field: FirebaseConstants.fieldCurrentCity,
-          operator: QueryOperator.isEqualTo,
-          value: filter.city,
-        ));
-      }
-      if (filter.verifiedOnly == true) {
-        filters.add(QueryFilter(
-          field: FirebaseConstants.fieldIsVerified,
-          operator: QueryOperator.isEqualTo,
-          value: true,
-        ));
-      }
-    }
-
-    final results = await firestoreService.query(
+    // Fetch all active users and filter in memory to avoid complex index requirements
+    // This is simpler and works without composite indexes
+    final results = await firestoreService.getAll(
       collection: FirebaseConstants.usersCollection,
-      filters: filters,
-      limit: perPage,
-      orderBy: FirebaseConstants.fieldCreatedAt,
-      descending: true,
+      limit: 200, // Reasonable limit for a matrimony app
     );
 
-    // Filter by age and height in memory (Firestore limitations)
-    var matches = results.map((data) => MatchModel.fromFirestore(data)).toList();
+    // Convert to MatchModel and filter
+    var matches = results
+        .where((data) => data['id'] != currentUserId) // Exclude current user
+        .where((data) => data['profileStatus'] == 'active') // Only active profiles
+        .map((data) => MatchModel.fromFirestore(data))
+        .toList();
 
+    // Apply opposite gender filter by default (unless user specified a gender filter)
+    final userSpecifiedGender = filter?.gender != null && filter!.gender!.isNotEmpty;
+    if (!userSpecifiedGender && oppositeGender != null) {
+      matches = matches.where((m) =>
+        m.gender?.toLowerCase() == oppositeGender.toLowerCase()
+      ).toList();
+    }
+
+    // Apply filters in memory
     if (filter != null) {
+      matches = matches.where((m) {
+        if (filter.gender != null && filter.gender!.isNotEmpty && m.gender?.toLowerCase() != filter.gender!.toLowerCase()) return false;
+        if (filter.department != null && filter.department!.isNotEmpty && m.department != filter.department) return false;
+        if (filter.religion != null && filter.religion!.isNotEmpty && m.religion != filter.religion) return false;
+        if (filter.maritalStatus != null && filter.maritalStatus!.isNotEmpty && m.maritalStatus != filter.maritalStatus) return false;
+        if (filter.city != null && filter.city!.isNotEmpty && m.currentCity != filter.city) return false;
+        if (filter.verifiedOnly == true && !m.isVerified) return false;
+        return true;
+      }).toList();
+
       matches = _applyLocalFilters(matches, filter);
     }
+
+    // Sort by lastSeen/online status (online users first, then by lastSeen)
+    matches.sort((a, b) {
+      if (a.isOnline && !b.isOnline) return -1;
+      if (!a.isOnline && b.isOnline) return 1;
+      return (b.lastSeen ?? DateTime(2000)).compareTo(a.lastSeen ?? DateTime(2000));
+    });
 
     // Get shortlist and interest status for each match
     matches = await _enrichMatchesWithStatus(matches);
 
+    // Paginate
+    final startIndex = (page - 1) * perPage;
+    final paginatedMatches = matches.skip(startIndex).take(perPage).toList();
+
     return PaginatedResponse(
-      items: matches,
+      items: paginatedMatches,
       pagination: PaginationMeta(
         currentPage: page,
         lastPage: (matches.length / perPage).ceil().clamp(1, 100),
         perPage: perPage,
         total: matches.length,
-        hasMorePages: matches.length >= perPage,
+        hasMorePages: startIndex + perPage < matches.length,
       ),
     );
   }
@@ -125,37 +118,57 @@ class MatchRepository {
       return _getMockMatches(page: page, perPage: perPage, recommended: true);
     }
 
-    // For recommendations, we could implement a matching algorithm
-    // For now, just return verified users
-    final results = await firestoreService.query(
+    // Get current user's gender to filter by opposite gender by default
+    final currentUserGender = await _getCurrentUserGender();
+    final oppositeGender = _getOppositeGender(currentUserGender);
+
+    // Fetch all users and filter in memory to avoid index requirements
+    final results = await firestoreService.getAll(
       collection: FirebaseConstants.usersCollection,
-      filters: [
-        QueryFilter(
-          field: FirebaseConstants.fieldIsVerified,
-          operator: QueryOperator.isEqualTo,
-          value: true,
-        ),
-      ],
-      limit: perPage,
-      orderBy: FirebaseConstants.fieldCreatedAt,
-      descending: true,
+      limit: 200,
     );
 
     var matches = results
         .where((data) => data['id'] != currentUserId)
+        .where((data) => data['isVerified'] == true)
+        .where((data) => data['profileStatus'] == 'active')
         .map((data) => MatchModel.fromFirestore(data))
         .toList();
 
+    // Filter by opposite gender by default
+    if (oppositeGender != null) {
+      matches = matches.where((m) =>
+        m.gender?.toLowerCase() == oppositeGender.toLowerCase()
+      ).toList();
+    }
+
+    // Sort: online first, then by verification
+    matches.sort((a, b) {
+      if (a.isOnline && !b.isOnline) return -1;
+      if (!a.isOnline && b.isOnline) return 1;
+      return 0;
+    });
+
     matches = await _enrichMatchesWithStatus(matches);
 
+    // Filter out profiles where user has already sent interest or has any interaction
+    matches = matches.where((m) =>
+      m.interestStatus == InterestStatus.none ||
+      m.interestStatus == InterestStatus.received
+    ).toList();
+
+    // Paginate
+    final startIndex = (page - 1) * perPage;
+    final paginatedMatches = matches.skip(startIndex).take(perPage).toList();
+
     return PaginatedResponse(
-      items: matches,
+      items: paginatedMatches,
       pagination: PaginationMeta(
         currentPage: page,
-        lastPage: 1,
+        lastPage: (matches.length / perPage).ceil().clamp(1, 100),
         perPage: perPage,
         total: matches.length,
-        hasMorePages: matches.length >= perPage,
+        hasMorePages: startIndex + perPage < matches.length,
       ),
     );
   }
@@ -169,28 +182,43 @@ class MatchRepository {
       return _getMockMatches(page: page, perPage: perPage, newlyJoined: true);
     }
 
-    final results = await firestoreService.query(
+    // Get current user's gender to filter by opposite gender by default
+    final currentUserGender = await _getCurrentUserGender();
+    final oppositeGender = _getOppositeGender(currentUserGender);
+
+    // Simple query without complex filtering
+    final results = await firestoreService.getAll(
       collection: FirebaseConstants.usersCollection,
-      limit: perPage,
-      orderBy: FirebaseConstants.fieldCreatedAt,
-      descending: true,
+      limit: 100,
     );
 
     var matches = results
         .where((data) => data['id'] != currentUserId)
+        .where((data) => data['profileStatus'] == 'active')
         .map((data) => MatchModel.fromFirestore(data))
         .toList();
 
+    // Filter by opposite gender by default
+    if (oppositeGender != null) {
+      matches = matches.where((m) =>
+        m.gender?.toLowerCase() == oppositeGender.toLowerCase()
+      ).toList();
+    }
+
     matches = await _enrichMatchesWithStatus(matches);
 
+    // Paginate
+    final startIndex = (page - 1) * perPage;
+    final paginatedMatches = matches.skip(startIndex).take(perPage).toList();
+
     return PaginatedResponse(
-      items: matches,
+      items: paginatedMatches,
       pagination: PaginationMeta(
         currentPage: page,
-        lastPage: 1,
+        lastPage: (matches.length / perPage).ceil().clamp(1, 100),
         perPage: perPage,
         total: matches.length,
-        hasMorePages: matches.length >= perPage,
+        hasMorePages: startIndex + perPage < matches.length,
       ),
     );
   }
@@ -273,6 +301,120 @@ class MatchRepository {
     return enriched.isNotEmpty ? enriched.first : match;
   }
 
+  /// Stream received interests (real-time)
+  Stream<List<MatchModel>> streamReceivedInterests() {
+    if (!useFirebase || currentUserId == null) return Stream.value([]);
+
+    return firestoreService.queryStream(
+      collection: FirebaseConstants.interestsCollection,
+      filters: [
+        QueryFilter(
+          field: FirebaseConstants.fieldToUserId,
+          operator: QueryOperator.isEqualTo,
+          value: currentUserId,
+        ),
+        QueryFilter(
+          field: FirebaseConstants.fieldStatus,
+          operator: QueryOperator.isEqualTo,
+          value: FirebaseConstants.statusPending,
+        ),
+      ],
+    ).asyncMap((interests) async {
+      final matches = <MatchModel>[];
+      for (final interest in interests) {
+        final userId = interest[FirebaseConstants.fieldFromUserId] as String?;
+        if (userId != null) {
+          final userData = await firestoreService.getById(
+            collection: FirebaseConstants.usersCollection,
+            documentId: userId,
+          );
+          if (userData != null) {
+            matches.add(MatchModel.fromFirestore(userData).copyWith(
+              interestStatus: InterestStatus.received,
+              interestId: interest['id'] as String?,
+            ));
+          }
+        }
+      }
+      return matches;
+    });
+  }
+
+  /// Stream sent interests (real-time)
+  Stream<List<MatchModel>> streamSentInterests() {
+    if (!useFirebase || currentUserId == null) return Stream.value([]);
+
+    return firestoreService.queryStream(
+      collection: FirebaseConstants.interestsCollection,
+      filters: [
+        QueryFilter(
+          field: FirebaseConstants.fieldFromUserId,
+          operator: QueryOperator.isEqualTo,
+          value: currentUserId,
+        ),
+      ],
+    ).asyncMap((interests) async {
+      final matches = <MatchModel>[];
+      for (final interest in interests) {
+        final userId = interest[FirebaseConstants.fieldToUserId] as String?;
+        if (userId != null) {
+          final userData = await firestoreService.getById(
+            collection: FirebaseConstants.usersCollection,
+            documentId: userId,
+          );
+          if (userData != null) {
+            final statusStr = interest[FirebaseConstants.fieldStatus] as String?;
+            InterestStatus status = InterestStatus.sent;
+            if (statusStr == FirebaseConstants.statusAccepted) {
+              status = InterestStatus.accepted;
+            } else if (statusStr == FirebaseConstants.statusRejected) {
+              status = InterestStatus.rejected;
+            }
+
+            matches.add(MatchModel.fromFirestore(userData).copyWith(
+              interestStatus: status,
+              interestId: interest['id'] as String?,
+            ));
+          }
+        }
+      }
+      return matches;
+    });
+  }
+
+  /// Stream newly joined users (real-time)
+  Stream<List<MatchModel>> streamNewlyJoined({int limit = 10}) {
+    if (!useFirebase) return Stream.value([]);
+
+    return firestoreService.queryStream(
+      collection: FirebaseConstants.usersCollection,
+      orderBy: FirebaseConstants.fieldCreatedAt,
+      descending: true,
+      limit: limit * 2, // Fetch more to account for gender filtering
+    ).asyncMap((users) async {
+      // Get current user's gender to filter by opposite gender
+      final currentUserGender = await _getCurrentUserGender();
+      final oppositeGender = _getOppositeGender(currentUserGender);
+
+      var matches = users
+          .where((data) => data['id'] != currentUserId)
+          .map((data) => MatchModel.fromFirestore(data))
+          .toList();
+
+      // Filter by opposite gender by default
+      if (oppositeGender != null) {
+        matches = matches.where((m) =>
+          m.gender?.toLowerCase() == oppositeGender.toLowerCase()
+        ).toList();
+      }
+
+      // Take only the requested limit after filtering
+      matches = matches.take(limit).toList();
+
+      return await _enrichMatchesWithStatus(matches);
+    });
+  }
+
   // ==================== INTERESTS ====================
 
   /// Send interest to a match
@@ -300,6 +442,53 @@ class MatchRepository {
     );
 
     return true;
+  }
+
+  /// Cancel/unsend interest
+  Future<bool> cancelInterest(String matchId) async {
+    if (!useFirebase) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      final index = _mockMatches.indexWhere((m) => m.id == matchId);
+      if (index != -1) {
+        _mockMatches[index] = _mockMatches[index].copyWith(
+          interestStatus: InterestStatus.none,
+        );
+      }
+      return true;
+    }
+
+    if (currentUserId == null) return false;
+
+    try {
+      // Find the interest document using getWhere
+      final interests = await firestoreService.getWhere(
+        collection: FirebaseConstants.interestsCollection,
+        field: FirebaseConstants.fieldFromUserId,
+        isEqualTo: currentUserId,
+      );
+
+      // Filter to find the one sent to this match
+      final interest = interests.where((i) => i[FirebaseConstants.fieldToUserId] == matchId).toList();
+
+      if (interest.isEmpty) {
+        return false;
+      }
+
+      final interestId = interest.first['id'];
+      if (interestId == null) {
+        return false;
+      }
+
+      // Delete the interest document
+      await firestoreService.delete(
+        collection: FirebaseConstants.interestsCollection,
+        documentId: interestId.toString(),
+      );
+
+      return true;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   /// Accept interest
@@ -813,6 +1002,29 @@ class MatchRepository {
 
   // ==================== HELPER METHODS ====================
 
+  /// Get the opposite gender for filtering
+  String? _getOppositeGender(String? gender) {
+    if (gender == null || gender.isEmpty) return null;
+    final lowerGender = gender.toLowerCase();
+    if (lowerGender == 'male') return 'female';
+    if (lowerGender == 'female') return 'male';
+    return null;
+  }
+
+  /// Get current user's gender from Firestore
+  Future<String?> _getCurrentUserGender() async {
+    if (currentUserId == null) return null;
+    try {
+      final userData = await firestoreService.getById(
+        collection: FirebaseConstants.usersCollection,
+        documentId: currentUserId!,
+      );
+      return userData?['gender'] as String?;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Enrich matches with shortlist and interest status
   Future<List<MatchModel>> _enrichMatchesWithStatus(List<MatchModel> matches) async {
     if (currentUserId == null || matches.isEmpty) return matches;
@@ -1114,6 +1326,14 @@ class MatchRepository {
     // Apply interest status filter
     if (interestStatus != null) {
       matches = matches.where((m) => m.interestStatus == interestStatus).toList();
+    }
+
+    // For recommended matches, filter out profiles with sent interests
+    if (recommended) {
+      matches = matches.where((m) =>
+        m.interestStatus == InterestStatus.none ||
+        m.interestStatus == InterestStatus.received
+      ).toList();
     }
 
     // Apply custom filters

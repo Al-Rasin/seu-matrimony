@@ -7,6 +7,8 @@ abstract class AppRoutes {
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
   static const otpVerification = '/otp-verification';
+  static const emailVerification = '/email-verification';
+  static const verificationPending = '/verification-pending';
 
   // Registration Steps
   static const registration = '/registration';
@@ -17,6 +19,7 @@ abstract class AppRoutes {
 
   // Admin
   static const adminDashboard = '/admin-dashboard';
+  static const adminUserManagement = '/admin-user-management';
 
   // Matches
   static const matches = '/matches';
