@@ -654,6 +654,7 @@ class ChatRepository {
 
     return {
       ...conv,
+      'unreadCount': conv['unreadCount_$currentUserId'] ?? 0,
       'participantId': otherUserId,
       'participantName': otherUser?[FirebaseConstants.fieldFullName] ?? 'Unknown User',
       'participantPhoto': otherUser?[FirebaseConstants.fieldProfilePhoto],

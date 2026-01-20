@@ -84,6 +84,8 @@ class ChatListScreen extends StatelessWidget {
 
   Widget _buildConversationTile(
       ConversationModel conversation, ChatListController controller) {
+    final hasUnread = conversation.unreadCount > 0;
+    
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: AppColors.primary.withValues(alpha: 0.2),
@@ -102,7 +104,9 @@ class ChatListScreen extends StatelessWidget {
           Expanded(
             child: Text(
               conversation.participantName ?? 'Unknown',
-              style: AppTextStyles.labelLarge,
+              style: hasUnread 
+                  ? AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w900) 
+                  : AppTextStyles.labelLarge,
             ),
           ),
           if (conversation.isOnline)
@@ -120,7 +124,12 @@ class ChatListScreen extends StatelessWidget {
         conversation.lastMessage ?? 'No messages yet',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: AppTextStyles.bodySmall,
+        style: hasUnread
+            ? AppTextStyles.bodySmall.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              )
+            : AppTextStyles.bodySmall,
       ),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -128,10 +137,12 @@ class ChatListScreen extends StatelessWidget {
         children: [
           Text(
             AppDateUtils.getChatTimestamp(conversation.lastMessageAt),
-            style: AppTextStyles.caption,
+            style: hasUnread 
+                ? AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary)
+                : AppTextStyles.caption,
           ),
           const SizedBox(height: 4),
-          if (conversation.unreadCount > 0)
+          if (hasUnread)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
