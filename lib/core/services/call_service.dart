@@ -10,7 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class CallService extends GetxService with WidgetsBindingObserver {
   // Mocking the engine access (returns null or throws if accessed, but we won't access it in UI anymore)
   get engine => null;
-  
+
   final FirestoreService _firestoreService = Get.find<FirestoreService>();
   final AuthService _authService = Get.find<AuthService>();
 
@@ -59,7 +59,7 @@ class CallService extends GetxService with WidgetsBindingObserver {
 
   void _showIncomingCallDialog(Map<String, dynamic> call) {
     if (Get.isDialogOpen == true) return;
-    
+
     Get.dialog(
       AlertDialog(
         title: const Text("Incoming Call"),

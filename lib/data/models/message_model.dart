@@ -8,6 +8,8 @@ enum MessageType {
 }
 
 
+/// Model representing a chat message
+class MessageModel {
   MessageModel({
     required this.id,
     required this.senderId,
@@ -20,9 +22,6 @@ enum MessageType {
     this.senderPhoto,
   });
 
-
-/// Model representing a chat message
-class MessageModel {
   final String id;
   final String senderId;
   final String content;
