@@ -10,6 +10,7 @@ import '../bindings/chat_binding.dart';
 import '../bindings/profile_binding.dart';
 import '../bindings/admin_binding.dart';
 import '../bindings/notification_binding.dart';
+import '../bindings/settings_binding.dart';
 
 // Screens - will be added as we implement them
 import '../../modules/splash/splash_screen.dart';
@@ -30,6 +31,11 @@ import '../../modules/profile/edit_profile/edit_profile_screen.dart';
 import '../../modules/subscription/subscription_screen.dart';
 import '../../modules/settings/settings_screen.dart';
 import '../../modules/settings/privacy_settings/privacy_settings_screen.dart';
+import '../../modules/settings/notification_settings/notification_settings_screen.dart';
+import '../../modules/settings/blocked_users/blocked_users_screen.dart';
+import '../../modules/settings/support/help_support_screen.dart';
+import '../../modules/settings/legal/terms_conditions_screen.dart';
+import '../../modules/settings/legal/privacy_policy_screen.dart';
 import '../../modules/notifications/notifications_screen.dart';
 import '../../modules/admin/dashboard/admin_dashboard_screen.dart';
 import '../../modules/admin/user_management/user_management_screen.dart';
@@ -144,11 +150,40 @@ class AppPages {
     GetPage(
       name: AppRoutes.settings,
       page: () => const SettingsScreen(),
+      binding: SettingsBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(
       name: AppRoutes.privacySettings,
       page: () => const PrivacySettingsScreen(),
+      binding: SettingsBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.notificationSettings,
+      page: () => const NotificationSettingsScreen(),
+      binding: SettingsBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.blockedUsers,
+      page: () => const BlockedUsersScreen(),
+      binding: SettingsBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.helpAndSupport,
+      page: () => const HelpSupportScreen(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.termsAndConditions,
+      page: () => const TermsConditionsScreen(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.privacyPolicy,
+      page: () => const PrivacyPolicyScreen(),
       transition: Transition.cupertino,
     ),
     GetPage(

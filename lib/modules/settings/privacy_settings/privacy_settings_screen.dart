@@ -10,7 +10,7 @@ class PrivacySettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(PrivacySettingsController());
+    final controller = Get.find<PrivacySettingsController>();
 
     return Scaffold(
       appBar: AppBar(
