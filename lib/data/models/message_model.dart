@@ -7,6 +7,20 @@ enum MessageType {
   system,
 }
 
+
+  MessageModel({
+    required this.id,
+    required this.senderId,
+    required this.content,
+    this.type = MessageType.text,
+    this.isRead = false,
+    this.readAt,
+    required this.createdAt,
+    this.senderName,
+    this.senderPhoto,
+  });
+
+
 /// Model representing a chat message
 class MessageModel {
   final String id;
@@ -21,17 +35,6 @@ class MessageModel {
   final String? senderName;
   final String? senderPhoto;
 
-  MessageModel({
-    required this.id,
-    required this.senderId,
-    required this.content,
-    this.type = MessageType.text,
-    this.isRead = false,
-    this.readAt,
-    required this.createdAt,
-    this.senderName,
-    this.senderPhoto,
-  });
 
   /// Create from Firestore document
   factory MessageModel.fromFirestore(Map<String, dynamic> data) {
