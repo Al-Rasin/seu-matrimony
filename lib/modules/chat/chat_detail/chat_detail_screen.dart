@@ -202,13 +202,21 @@ class ChatDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          CircleAvatar(
+          Obx(() => CircleAvatar(
             backgroundColor: AppColors.primary,
-            child: IconButton(
-              icon: const Icon(Icons.send, color: Colors.white),
-              onPressed: controller.sendMessage,
-            ),
-          ),
+            child: controller.isLoading.value
+                ? const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.send, color: Colors.white),
+                    onPressed: controller.sendMessage,
+                  ),
+          )),
         ],
       ),
     );

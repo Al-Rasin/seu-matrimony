@@ -42,6 +42,9 @@ class ProfileDetailController extends GetxController {
       profile.value = data;
       isShortlisted.value = data.isShortlisted;
       interestStatus.value = data.interestStatus;
+      
+      // Record profile view
+      _matchRepository.recordProfileView(matchId!);
     } catch (e) {
       hasError.value = true;
       errorMessage.value = e.toString();
@@ -342,6 +345,7 @@ class ProfileDetailController extends GetxController {
     if (profile.value == null) return;
     if (!await _checkAdminVerification()) return;
 
+    debugPrint('Starting chat with: ${profile.value!.fullName}, ID: $matchId');
     Get.toNamed('/chat-detail', arguments: {
       'userId': matchId,
       'userName': profile.value!.fullName,

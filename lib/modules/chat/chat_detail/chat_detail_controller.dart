@@ -29,18 +29,21 @@ class ChatDetailController extends GetxController {
   void onInit() {
     super.onInit();
     final args = Get.arguments as Map<String, dynamic>?;
+    debugPrint('ChatDetailController onInit args: $args');
     conversationId = args?['conversationId'];
     
     // Initialize with passed conversation object if available (for instant UI)
     if (args != null && args.containsKey('conversation')) {
       final passedConversation = args['conversation'];
       if (passedConversation is ConversationModel) {
+        debugPrint('Initialized with passed conversation object');
         conversation.value = passedConversation;
       }
     }
 
     // Initialize with user details (from Profile page)
     if (args != null && args.containsKey('userId') && conversationId == null) {
+      debugPrint('Initializing chat from profile with userId: ${args['userId']}');
       final userId = args['userId'];
       final userName = args['userName'] ?? 'Unknown';
       final userPhoto = args['userPhoto'];
@@ -58,21 +61,27 @@ class ChatDetailController extends GetxController {
       
       _initializeChatWithUser(userId);
     } else if (conversationId != null) {
+      debugPrint('Loading existing conversation: $conversationId');
       _loadConversationDetails();
       _listenToMessages();
       _listenToTypingStatus();
       _markAsRead();
+    } else {
+      debugPrint('Error: No conversationId or userId provided');
     }
   }
 
   Future<void> _initializeChatWithUser(String otherUserId) async {
     try {
+      debugPrint('Creating/Getting conversation for user: $otherUserId');
       isLoading.value = true;
       final response = await _chatRepository.createConversation(otherUserId);
+      debugPrint('Create conversation response: $response');
       
       if (response['success']) {
         final data = response['data'];
         conversationId = data['id'];
+        debugPrint('Conversation initialized with ID: $conversationId');
         
         // If it was an existing conversation, load its full details
         if (response['isExisting'] == true) {
@@ -190,10 +199,18 @@ class ChatDetailController extends GetxController {
 
   Future<void> sendMessage() async {
     debugPrint('Attempting to send message...');
+    
+    // Check if initializing
     if (conversationId == null) {
-       debugPrint('Error: conversationId is null');
+       if (isLoading.value) {
+         Get.snackbar('Please wait', 'Initializing conversation...');
+         return;
+       }
+       debugPrint('Error: conversationId is null and not loading');
+       Get.snackbar('Error', 'Conversation not initialized properly');
        return;
     }
+
     if (messageController.text.trim().isEmpty) {
        debugPrint('Error: Message is empty');
        return;
