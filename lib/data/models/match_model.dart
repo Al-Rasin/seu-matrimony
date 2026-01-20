@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class MatchModel {
   final String id;
   final String fullName;
+  final String? email;
   final String? profilePhoto;
   final List<String>? photos;
   final int? age;
@@ -28,6 +29,7 @@ class MatchModel {
   const MatchModel({
     required this.id,
     required this.fullName,
+    this.email,
     this.profilePhoto,
     this.photos,
     this.age,
@@ -54,6 +56,7 @@ class MatchModel {
     return MatchModel(
       id: json['id']?.toString() ?? '',
       fullName: json['full_name']?.toString() ?? json['fullName']?.toString() ?? '',
+      email: json['email']?.toString(),
       profilePhoto: json['profile_photo']?.toString() ?? json['profilePhoto']?.toString(),
       photos: json['photos'] != null ? List<String>.from(json['photos']) : null,
       age: json['age'] is int ? json['age'] : int.tryParse(json['age']?.toString() ?? ''),
@@ -98,6 +101,7 @@ class MatchModel {
     return MatchModel(
       id: data['id']?.toString() ?? '',
       fullName: data['fullName']?.toString() ?? '',
+      email: data['email']?.toString(),
       profilePhoto: data['profilePhoto']?.toString(),
       photos: data['photos'] != null ? List<String>.from(data['photos']) : null,
       age: data['age'] is int ? data['age'] : int.tryParse(data['age']?.toString() ?? ''),
@@ -131,6 +135,7 @@ class MatchModel {
     return {
       'id': id,
       'full_name': fullName,
+      'email': email,
       'profile_photo': profilePhoto,
       'photos': photos,
       'age': age,
@@ -185,6 +190,7 @@ class MatchModel {
   MatchModel copyWith({
     String? id,
     String? fullName,
+    String? email,
     String? profilePhoto,
     List<String>? photos,
     int? age,
@@ -209,6 +215,7 @@ class MatchModel {
     return MatchModel(
       id: id ?? this.id,
       fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
       profilePhoto: profilePhoto ?? this.profilePhoto,
       photos: photos ?? this.photos,
       age: age ?? this.age,

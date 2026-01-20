@@ -2,6 +2,45 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// User model for SEU Matrimony app
 class UserModel {
+const UserModel({
+    required this.id,
+    required this.username,
+    required this.fullName,
+    this.email,
+    this.phone,
+    this.profilePhoto,
+    this.role = UserRole.user,
+    this.profileStatus = ProfileStatus.pending,
+    this.isVerified = false,
+    this.isEmailVerified = false,
+    this.isOnline = false,
+    this.lastSeen,
+    required this.createdAt,
+    this.updatedAt,
+    this.gender,
+    this.dateOfBirth,
+    this.age,
+    this.department,
+    this.studentId,
+    this.isCurrentlyStudying,
+    this.maritalStatus,
+    this.hasChildren,
+    this.numberOfChildren,
+    this.height,
+    this.religion,
+    this.highestEducation,
+    this.educationDetails,
+    this.employmentType,
+    this.occupation,
+    this.annualIncome,
+    this.workLocation,
+    this.companyName,
+    this.currentCity,
+    this.bio,
+    this.photos,
+    this.profileCompletionPercentage = 0,
+  });
+
   final String id;
   final String username;
   final String fullName;
@@ -49,44 +88,7 @@ class UserModel {
   // Profile Completion
   final int profileCompletionPercentage;
 
-  const UserModel({
-    required this.id,
-    required this.username,
-    required this.fullName,
-    this.email,
-    this.phone,
-    this.profilePhoto,
-    this.role = UserRole.user,
-    this.profileStatus = ProfileStatus.pending,
-    this.isVerified = false,
-    this.isEmailVerified = false,
-    this.isOnline = false,
-    this.lastSeen,
-    required this.createdAt,
-    this.updatedAt,
-    this.gender,
-    this.dateOfBirth,
-    this.age,
-    this.department,
-    this.studentId,
-    this.isCurrentlyStudying,
-    this.maritalStatus,
-    this.hasChildren,
-    this.numberOfChildren,
-    this.height,
-    this.religion,
-    this.highestEducation,
-    this.educationDetails,
-    this.employmentType,
-    this.occupation,
-    this.annualIncome,
-    this.workLocation,
-    this.companyName,
-    this.currentCity,
-    this.bio,
-    this.photos,
-    this.profileCompletionPercentage = 0,
-  });
+  
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(

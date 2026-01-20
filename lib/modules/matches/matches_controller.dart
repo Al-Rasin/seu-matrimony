@@ -333,15 +333,28 @@ class MatchesController extends GetxController {
   Future<void> acceptInterest(String matchId) async {
     if (!await _checkAdminVerification()) return;
 
+    // Find the match to get the interestId
+    final index = matches.indexWhere((m) => m.id == matchId);
+    if (index == -1) return;
+
+    final match = matches[index];
+    final interestId = match.interestId;
+
+    if (interestId == null || interestId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Interest not found',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
     try {
-      final success = await _matchRepository.acceptInterest(matchId);
+      final success = await _matchRepository.acceptInterest(interestId);
       if (success) {
-        final index = matches.indexWhere((m) => m.id == matchId);
-        if (index != -1) {
-          matches[index] = matches[index].copyWith(
-            interestStatus: InterestStatus.accepted,
-          );
-        }
+        matches[index] = match.copyWith(
+          interestStatus: InterestStatus.accepted,
+        );
         Get.snackbar(
           'Success',
           'Interest accepted!',
@@ -363,8 +376,24 @@ class MatchesController extends GetxController {
   Future<void> rejectInterest(String matchId) async {
     if (!await _checkAdminVerification()) return;
 
+    // Find the match to get the interestId
+    final index = matches.indexWhere((m) => m.id == matchId);
+    if (index == -1) return;
+
+    final match = matches[index];
+    final interestId = match.interestId;
+
+    if (interestId == null || interestId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Interest not found',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
     try {
-      final success = await _matchRepository.rejectInterest(matchId);
+      final success = await _matchRepository.rejectInterest(interestId);
       if (success) {
         matches.removeWhere((m) => m.id == matchId);
         Get.snackbar(

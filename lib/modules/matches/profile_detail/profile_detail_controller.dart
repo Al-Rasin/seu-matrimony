@@ -182,8 +182,18 @@ class ProfileDetailController extends GetxController {
     if (matchId == null) return;
     if (!await _checkAdminVerification()) return;
 
+    final interestId = profile.value?.interestId;
+    if (interestId == null || interestId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Interest not found',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
     try {
-      final success = await _matchRepository.acceptInterest(matchId!);
+      final success = await _matchRepository.acceptInterest(interestId);
       if (success) {
         interestStatus.value = InterestStatus.accepted;
         if (profile.value != null) {
@@ -210,8 +220,18 @@ class ProfileDetailController extends GetxController {
     if (matchId == null) return;
     if (!await _checkAdminVerification()) return;
 
+    final interestId = profile.value?.interestId;
+    if (interestId == null || interestId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Interest not found',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
     try {
-      final success = await _matchRepository.rejectInterest(matchId!);
+      final success = await _matchRepository.rejectInterest(interestId);
       if (success) {
         interestStatus.value = InterestStatus.rejected;
         if (profile.value != null) {

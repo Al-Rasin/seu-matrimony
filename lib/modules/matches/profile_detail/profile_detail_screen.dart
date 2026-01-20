@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'profile_detail_controller.dart';
@@ -147,6 +148,8 @@ class ProfileDetailScreen extends StatelessWidget {
                       icon: Icons.info_outline,
                       child: Column(
                         children: [
+                          if (kDebugMode && profile.email != null)
+                            _buildDetailRow('Email (Debug)', profile.email!),
                           _buildDetailRow('Age', profile.ageDisplay),
                           _buildDetailRow('Height', profile.displayHeight ?? 'Not specified'),
                           _buildDetailRow('Religion', profile.religion ?? 'Not specified'),
