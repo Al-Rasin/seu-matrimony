@@ -196,11 +196,32 @@ class MyProfileController extends GetxController {
   }
 
   Future<void> logout() async {
-    try {
-      await _authRepository.logout();
-      Get.offAllNamed(AppRoutes.login);
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to logout');
-    }
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back(); // Close dialog first
+              try {
+                await _authRepository.logout();
+                Get.offAllNamed(AppRoutes.login);
+              } catch (e) {
+                Get.snackbar('Error', 'Failed to logout');
+              }
+            },
+            child: const Text(
+              'Yes',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

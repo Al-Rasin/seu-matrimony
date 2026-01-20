@@ -10,13 +10,15 @@ class RegistrationController extends GetxController {
   final currentStep = 0.obs;
   final isLoading = false.obs;
 
+
+
   // Step 1: Basic Details
   final ageController = TextEditingController();
   final dobController = TextEditingController();
   final department = Rxn<String>();
   final gender = Rxn<String>();
 
-  // Step 2: Personal Details
+  // Step 2: Personal Details 
   final maritalStatus = Rxn<String>();
   final emailController = TextEditingController();
   final hasChildren = false.obs;

@@ -151,6 +151,12 @@ class MatchRepository {
 
     matches = await _enrichMatchesWithStatus(matches);
 
+    // Filter out profiles where user has already sent interest or has any interaction
+    matches = matches.where((m) =>
+      m.interestStatus == InterestStatus.none ||
+      m.interestStatus == InterestStatus.received
+    ).toList();
+
     // Paginate
     final startIndex = (page - 1) * perPage;
     final paginatedMatches = matches.skip(startIndex).take(perPage).toList();
@@ -1320,6 +1326,14 @@ class MatchRepository {
     // Apply interest status filter
     if (interestStatus != null) {
       matches = matches.where((m) => m.interestStatus == interestStatus).toList();
+    }
+
+    // For recommended matches, filter out profiles with sent interests
+    if (recommended) {
+      matches = matches.where((m) =>
+        m.interestStatus == InterestStatus.none ||
+        m.interestStatus == InterestStatus.received
+      ).toList();
     }
 
     // Apply custom filters
