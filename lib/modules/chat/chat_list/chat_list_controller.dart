@@ -41,8 +41,11 @@ class ChatListController extends GetxController
     _listenToConversations();
   }
 
-  void openChat(String conversationId) {
-    Get.toNamed('/chat-detail', arguments: {'conversationId': conversationId});
+  void openChat(ConversationModel conversation) {
+    Get.toNamed('/chat-detail', arguments: {
+      'conversationId': conversation.id,
+      'conversation': conversation,
+    });
   }
 
   @override

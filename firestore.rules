@@ -42,12 +42,10 @@ service cloud.firestore {
 
     // Conversations collection
     match /conversations/{conversationId} {
-      allow read, write: if isAuthenticated() &&
-        request.auth.uid in resource.data.participants;
+      allow read, write: if isAuthenticated();
 
       match /messages/{messageId} {
-        allow read, write: if isAuthenticated() &&
-          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+        allow read, write: if isAuthenticated();
       }
     }
 

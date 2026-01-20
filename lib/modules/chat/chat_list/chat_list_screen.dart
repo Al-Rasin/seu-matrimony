@@ -149,7 +149,7 @@ class ChatListScreen extends StatelessWidget {
             ),
         ],
       ),
-      onTap: () => controller.openChat(conversation.id),
+      onTap: () => controller.openChat(conversation),
     );
   }
 }

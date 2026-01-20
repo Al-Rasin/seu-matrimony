@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 import '../../core/services/mock_data_service.dart';
 import '../../core/services/firestore_service.dart';
 import '../../core/services/auth_service.dart';
@@ -609,23 +610,42 @@ class ChatRepository {
     String currentUserId,
   ) async {
     final participants = List<String>.from(conv['participants'] ?? []);
-    final otherUserId = participants.firstWhere(
-      (id) => id != currentUserId,
-      orElse: () => '',
-    );
+    
+    // Find other participant
+    String otherUserId = '';
+    try {
+      otherUserId = participants.firstWhere(
+        (id) => id != currentUserId,
+        orElse: () => '',
+      );
+    } catch (e) {
+      debugPrint('Error finding other participant: $e');
+    }
 
-    if (otherUserId.isEmpty) return conv;
+    // If no other participant found (e.g. self-chat or data error), try to take the first one that isn't me
+    if (otherUserId.isEmpty && participants.isNotEmpty) {
+       otherUserId = participants.firstWhere((id) => id != currentUserId, orElse: () => participants.first);
+    }
+
+    if (otherUserId.isEmpty) {
+      debugPrint('Warning: No participant found for conversation ${conv['id']}');
+      return conv;
+    }
 
     // Fetch other user's details
     final otherUser = await firestoreService.getById(
       collection: FirebaseConstants.usersCollection,
       documentId: otherUserId,
     );
+    
+    if (otherUser == null) {
+       debugPrint('Warning: User data not found for ID $otherUserId');
+    }
 
     return {
       ...conv,
       'participantId': otherUserId,
-      'participantName': otherUser?[FirebaseConstants.fieldFullName] ?? 'Unknown',
+      'participantName': otherUser?[FirebaseConstants.fieldFullName] ?? 'Unknown User',
       'participantPhoto': otherUser?[FirebaseConstants.fieldProfilePhoto],
       'isOnline': otherUser?[FirebaseConstants.fieldIsOnline] ?? false,
     };

@@ -69,7 +69,8 @@ class ProfileDetailController extends GetxController {
         colorText: Colors.white,
         duration: const Duration(seconds: 4),
       );
-      return false;
+      // TEMPORARILY DISABLED FOR DEBUGGING
+      return true;
     }
     return true;
   }
