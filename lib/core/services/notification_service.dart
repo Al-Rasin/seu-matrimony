@@ -4,11 +4,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../app/routes/app_routes.dart';
 import 'auth_service.dart';
 import 'firestore_service.dart';
 import '../constants/firebase_constants.dart';
 
-/// Service to handle push notifications using FCM
+/// Service to handle push notifications using FCM and local notifications
 class NotificationService extends GetxService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
@@ -23,7 +24,7 @@ class NotificationService extends GetxService {
   void onInit() {
     super.onInit();
     _initializeLocalNotifications();
-    requestPermissions(); // Ensure permissions are requested
+    requestPermissions();
     _setupFCMListeners();
     _setupFirestoreListener();
   }
@@ -35,14 +36,52 @@ class NotificationService extends GetxService {
     super.onClose();
   }
 
+  // ==================== LOCAL NOTIFICATIONS SETUP ====================
+
+  Future<void> _initializeLocalNotifications() async {
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings();
+    
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _localNotifications.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (details) {
+        // Handle notification tap
+        _handleNotificationClick(details.payload);
+      },
+    );
+  }
+
+  void _handleNotificationClick(String? payload) {
+    if (payload != null) {
+      debugPrint('NotificationService: Handling click payload: $payload');
+      
+      if (payload.startsWith(AppRoutes.profileDetail)) {
+        final uri = Uri.parse(payload);
+        final id = uri.queryParameters['id'];
+        if (id != null) {
+           Get.toNamed(AppRoutes.profileDetail, arguments: {'matchId': id});
+        }
+      } else if (payload.isNotEmpty) {
+        Get.toNamed(payload);
+      }
+    }
+  }
+
+  // ==================== FIRESTORE LISTENER (REAL-TIME ALERTS) ====================
+
   void _setupFirestoreListener() {
     // Listen to auth changes to start/stop listening to notifications
     _authSubscription = _authService.authStateChanges.listen((user) {
       if (user != null) {
-        print('NotificationService: User logged in, listening to notifications for ${user.uid}');
+        debugPrint('NotificationService: User logged in, listening to notifications for ${user.uid}');
         _listenToUserNotifications(user.uid);
       } else {
-        print('NotificationService: User logged out, stopping listener');
+        debugPrint('NotificationService: User logged out, stopping listener');
         _firestoreNotificationSubscription?.cancel();
       }
     });
@@ -65,7 +104,7 @@ class NotificationService extends GetxService {
       descending: true,
       limit: 10,
     ).listen((data) {
-      print('NotificationService: Received update with ${data.length} items');
+      debugPrint('NotificationService: Received update with ${data.length} items');
       
       final now = DateTime.now();
       for (final item in data) {
@@ -79,15 +118,12 @@ class NotificationService extends GetxService {
 
         if (date != null) {
           final diff = now.difference(date).inSeconds.abs();
-          print('NotificationService: Item ${item['id']} diff: $diff seconds');
           
-          // Relaxed check to 60 seconds to avoid clock skew issues during test
+          // Check if notification is new (within last 60 seconds)
           if (diff < 60) {
-             print('NotificationService: Triggering local notification for ${item['id']}');
+             debugPrint('NotificationService: Triggering local notification for ${item['id']}');
              _triggerLocalNotificationIfNew(item);
           }
-        } else {
-           print('NotificationService: Date is null for ${item['id']}');
         }
       }
     });
@@ -96,11 +132,20 @@ class NotificationService extends GetxService {
   void _triggerLocalNotificationIfNew(Map<String, dynamic> item) {
     final title = item[FirebaseConstants.fieldTitle] as String?;
     final body = item[FirebaseConstants.fieldBody] as String?;
-    // Use ID hash as notification ID to avoid duplicates if processed twice
-    final id = item['id'].hashCode; 
+    final id = item['id'].hashCode;
+    final data = item[FirebaseConstants.fieldData] as Map<String, dynamic>?;
+    final type = item[FirebaseConstants.fieldType] as String?;
+
+    String? payload;
+    if (data != null && data['id'] != null) {
+      final targetId = data['id'];
+      if (type == 'interest_received' || type == 'interest_accepted') {
+        // Navigate to profile detail of the person who acted
+        payload = '${AppRoutes.profileDetail}?id=$targetId';
+      }
+    }
 
     if (title != null && body != null) {
-       // Show local notification
        const androidDetails = AndroidNotificationDetails(
         'high_importance_channel',
         'High Importance Notifications',
@@ -114,27 +159,12 @@ class NotificationService extends GetxService {
         title,
         body,
         notificationDetails,
+        payload: payload,
       );
     }
   }
 
-  Future<void> _initializeLocalNotifications() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings();
-    
-    const initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-
-    await _localNotifications.initialize(
-      initSettings,
-      onDidReceiveNotificationResponse: (details) {
-        // Handle notification tap
-        _handleNotificationClick(details.payload);
-      },
-    );
-  }
+  // ==================== FCM SETUP ====================
 
   void _setupFCMListeners() {
     // Listen to foreground messages
@@ -151,7 +181,10 @@ class NotificationService extends GetxService {
     // Listen to notification clicks when app is in background but not terminated
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('A new onMessageOpenedApp event was published!');
-      _handleNotificationClick(message.data['path']);
+      // Parse payload from FCM data if needed, or path
+      if (message.data['path'] != null) {
+        Get.toNamed(message.data['path']);
+      }
     });
   }
 
@@ -211,7 +244,7 @@ class NotificationService extends GetxService {
     );
   }
 
-  /// Show a local notification manually (e.g. triggered from Firestore listener)
+  /// Show a local notification manually (public method)
   Future<void> showNotification({
     required String title,
     required String body,
@@ -224,12 +257,7 @@ class NotificationService extends GetxService {
       priority: Priority.high,
     );
     
-    const iosDetails = DarwinNotificationDetails();
-    
-    const notificationDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
+    const notificationDetails = NotificationDetails(android: androidDetails);
 
     await _localNotifications.show(
       DateTime.now().millisecond,
@@ -238,12 +266,6 @@ class NotificationService extends GetxService {
       notificationDetails,
       payload: payload,
     );
-  }
-
-  void _handleNotificationClick(String? path) {
-    if (path != null && path.isNotEmpty) {
-      Get.toNamed(path);
-    }
   }
 
   /// Save notification to Firestore (for history)

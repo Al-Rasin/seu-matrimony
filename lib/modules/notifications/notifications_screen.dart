@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../app/routes/app_routes.dart';
 import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
@@ -117,7 +118,19 @@ class NotificationsScreen extends GetView<NotificationController> {
             if (!isRead && notification['id'] != null) {
               controller.markAsRead(notification['id']);
             }
-            // Handle navigation if needed based on 'type' or 'data'
+            
+            // Handle navigation based on type and data
+            final type = notification[FirebaseConstants.fieldType];
+            final data = notification[FirebaseConstants.fieldData] as Map<String, dynamic>?;
+
+            if (data != null && data['id'] != null) {
+              final targetId = data['id'];
+              
+              if (type == 'interest_received' || type == 'interest_accepted') {
+                Get.toNamed(AppRoutes.profileDetail, arguments: {'matchId': targetId});
+              }
+              // Add other types here if needed (e.g., chat message)
+            }
           },
         ),
       ),
