@@ -62,12 +62,12 @@ class EditProfessionalDetailsScreen extends GetView<EditProfileController> {
                   value: controller.annualIncome.value,
                   items: const [
                     'Not Specified',
-                    'Less than 1 Lakh',
-                    '1 Lakh - 3 Lakh',
-                    '3 Lakh - 5 Lakh',
-                    '5 Lakh - 10 Lakh',
-                    '10 Lakh - 20 Lakh',
-                    'Above 20 Lakh'
+                    'Below 2 Lakh',
+                    '2-5 Lakh',
+                    '5-10 Lakh',
+                    '10-20 Lakh',
+                    '20-50 Lakh',
+                    'Above 50 Lakh'
                   ],
                   onChanged: (value) => controller.annualIncome.value = value,
                 )),
