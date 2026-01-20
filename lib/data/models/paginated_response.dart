@@ -15,13 +15,6 @@ class PaginatedResponse<T> {
 }
 
 /// Pagination metadata
-class PaginationMeta {
-  final int currentPage;
-  final int lastPage;
-  final int perPage;
-  final int total;
-  final bool hasMorePages;
-
   PaginationMeta({
     required this.currentPage,
     required this.lastPage,
@@ -29,6 +22,16 @@ class PaginationMeta {
     required this.total,
     required this.hasMorePages,
   });
+
+  
+class PaginationMeta {
+  final int currentPage;
+  final int lastPage;
+  final int perPage;
+  final int total;
+  final bool hasMorePages;
+
+
 
   factory PaginationMeta.empty() {
     return PaginationMeta(
