@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../core/services/mock_data_service.dart';
 import '../../core/services/firestore_service.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/notification_service.dart';
 import '../../core/constants/firebase_constants.dart';
 import '../models/match_model.dart';
 import '../models/filter_model.dart';
@@ -14,6 +15,7 @@ export '../models/filter_model.dart';
 class MatchRepository {
   FirestoreService? _firestoreService;
   AuthService? _authService;
+  NotificationService? _notificationService;
 
   FirestoreService get firestoreService {
     _firestoreService ??= Get.find<FirestoreService>();
@@ -23,6 +25,11 @@ class MatchRepository {
   AuthService get authService {
     _authService ??= Get.find<AuthService>();
     return _authService!;
+  }
+
+  NotificationService get notificationService {
+    _notificationService ??= Get.find<NotificationService>();
+    return _notificationService!;
   }
 
   /// Check if using Firebase or mock data
@@ -441,6 +448,28 @@ class MatchRepository {
       },
     );
 
+    // Send notification to the receiver
+    try {
+      print('MatchRepository: Attempting to send notification to $matchId');
+      final currentUserData = await firestoreService.getById(
+        collection: FirebaseConstants.usersCollection,
+        documentId: currentUserId!,
+      );
+      final senderName = currentUserData?['fullName'] ?? 'Someone';
+
+      await notificationService.saveNotification(
+        userId: matchId,
+        type: 'interest_received',
+        title: 'New Interest Received',
+        body: '$senderName sent you an interest.',
+        data: {'type': 'interest', 'id': currentUserId},
+      );
+      print('MatchRepository: Notification sent successfully');
+    } catch (e) {
+      // Ignore notification errors
+      print('Error sending notification: $e');
+    }
+
     return true;
   }
 
@@ -506,6 +535,35 @@ class MatchRepository {
       },
     );
 
+    // Send notification to the sender of the interest
+    try {
+      // Fetch interest to get the sender's ID
+      final interest = await firestoreService.getById(
+        collection: FirebaseConstants.interestsCollection,
+        documentId: interestId,
+      );
+      
+      final senderId = interest?[FirebaseConstants.fieldFromUserId] as String?;
+      
+      if (senderId != null) {
+        final currentUserData = await firestoreService.getById(
+          collection: FirebaseConstants.usersCollection,
+          documentId: currentUserId!,
+        );
+        final accepterName = currentUserData?['fullName'] ?? 'Someone';
+
+        await notificationService.saveNotification(
+          userId: senderId,
+          type: 'interest_accepted',
+          title: 'Interest Accepted',
+          body: '$accepterName accepted your interest! You can now chat.',
+          data: {'type': 'match', 'id': currentUserId},
+        );
+      }
+    } catch (e) {
+      print('Error sending notification: $e');
+    }
+
     return true;
   }
 
@@ -523,6 +581,28 @@ class MatchRepository {
         FirebaseConstants.fieldStatus: FirebaseConstants.statusRejected,
       },
     );
+
+    // Send notification to the sender (optional, but requested to make dynamic)
+    try {
+      final interest = await firestoreService.getById(
+        collection: FirebaseConstants.interestsCollection,
+        documentId: interestId,
+      );
+      
+      final senderId = interest?[FirebaseConstants.fieldFromUserId] as String?;
+      
+      if (senderId != null) {
+        await notificationService.saveNotification(
+          userId: senderId,
+          type: 'interest_rejected',
+          title: 'Interest Declined',
+          body: 'Your interest was declined.',
+          data: {'type': 'interest_status', 'id': interestId},
+        );
+      }
+    } catch (e) {
+      print('Error sending notification: $e');
+    }
 
     return true;
   }

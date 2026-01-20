@@ -9,6 +9,7 @@ import '../bindings/matches_binding.dart';
 import '../bindings/chat_binding.dart';
 import '../bindings/profile_binding.dart';
 import '../bindings/admin_binding.dart';
+import '../bindings/notification_binding.dart';
 
 // Screens - will be added as we implement them
 import '../../modules/splash/splash_screen.dart';
@@ -147,6 +148,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.notifications,
       page: () => const NotificationsScreen(),
+      binding: NotificationBinding(),
       transition: Transition.cupertino,
     ),
   ];
