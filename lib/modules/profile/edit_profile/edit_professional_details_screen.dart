@@ -25,11 +25,10 @@ class EditProfessionalDetailsScreen extends GetView<EditProfileController> {
                   value: controller.highestEducation.value,
                   items: const [
                     'Doctorate',
-                    'Masters',
-                    'Bachelors',
+                    'Master\'s',
+                    'Bachelor\'s',
                     'Diploma',
-                    'HSC',
-                    'SSC',
+                    'High School',
                     'Other'
                   ],
                   onChanged: (value) =>
@@ -41,8 +40,8 @@ class EditProfessionalDetailsScreen extends GetView<EditProfileController> {
                   hint: 'Select employment status',
                   value: controller.employment.value,
                   items: const [
-                    'Private Sector',
-                    'Government',
+                    'Employed',
+                    'Self Employed',
                     'Business',
                     'Student',
                     'Not Working',

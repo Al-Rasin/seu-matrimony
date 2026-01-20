@@ -32,10 +32,10 @@ class FiltersController extends GetxController {
 
   final religions = [
     '',
-    'Islam',
-    'Hinduism',
-    'Christianity',
-    'Buddhism',
+    'Muslim',
+    'Hindu',
+    'Christian',
+    'Buddhist',
     'Other',
   ];
 
@@ -44,13 +44,13 @@ class FiltersController extends GetxController {
     'Never Married',
     'Divorced',
     'Widowed',
-    'Awaiting Divorce',
+    'Separated',
   ];
 
   final familyTypes = [
     '',
-    'Nuclear',
-    'Joint',
+    'Nuclear Family',
+    'Joint Family',
     'Other',
   ];
 
@@ -58,8 +58,8 @@ class FiltersController extends GetxController {
     '',
     'High School',
     'Diploma',
-    'Bachelors',
-    'Masters',
+    'Bachelor\'s',
+    'Master\'s',
     'PhD',
     'Other',
   ];

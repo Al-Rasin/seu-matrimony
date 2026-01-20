@@ -6,6 +6,8 @@ import '../../../data/repositories/user_repository.dart';
 import '../../../core/constants/firebase_constants.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/material.dart';
+import '../my_profile/my_profile_controller.dart';
+import '../../../app/routes/app_routes.dart';
 import 'edit_basic_details_screen.dart';
 import 'edit_personal_details_screen.dart';
 import 'edit_professional_details_screen.dart';
@@ -73,7 +75,7 @@ class EditProfileController extends GetxController {
 
   Future<void> editBasicDetails() async {
     await _loadBasicDetails();
-    Get.to(() => const EditBasicDetailsScreen());
+    Get.toNamed(AppRoutes.editBasicDetails);
   }
 
   Future<void> _loadBasicDetails() async {
@@ -115,9 +117,7 @@ class EditProfileController extends GetxController {
       });
       Get.back(); // Close the screen
       Get.snackbar('Success', 'Basic details updated successfully');
-      
-      // Refresh previous screen if needed (e.g., MyProfile)
-      // Get.find<MyProfileController>().loadProfile(); // If feasible
+      _refreshProfile();
     } catch (e) {
       Get.snackbar('Error', 'Failed to update basic details');
     } finally {
@@ -127,7 +127,7 @@ class EditProfileController extends GetxController {
 
   Future<void> editPersonalDetails() async {
     await _loadPersonalDetails();
-    Get.to(() => const EditPersonalDetailsScreen());
+    Get.toNamed(AppRoutes.editPersonalDetails);
   }
 
   Future<void> _loadPersonalDetails() async {
@@ -165,6 +165,7 @@ class EditProfileController extends GetxController {
       });
       Get.back();
       Get.snackbar('Success', 'Personal details updated successfully');
+      _refreshProfile();
     } catch (e) {
       Get.snackbar('Error', 'Failed to update personal details');
     } finally {
@@ -174,7 +175,7 @@ class EditProfileController extends GetxController {
 
   Future<void> editProfessionalDetails() async {
     await _loadProfessionalDetails();
-    Get.to(() => const EditProfessionalDetailsScreen());
+    Get.toNamed(AppRoutes.editProfessionalDetails);
   }
 
   Future<void> _loadProfessionalDetails() async {
@@ -207,6 +208,7 @@ class EditProfileController extends GetxController {
       });
       Get.back();
       Get.snackbar('Success', 'Professional details updated successfully');
+      _refreshProfile();
     } catch (e) {
       Get.snackbar('Error', 'Failed to update professional details');
     } finally {
@@ -216,7 +218,7 @@ class EditProfileController extends GetxController {
 
   Future<void> editFamilyDetails() async {
     await _loadFamilyDetails();
-    Get.to(() => const EditFamilyDetailsScreen());
+    Get.toNamed(AppRoutes.editFamilyDetails);
   }
 
   Future<void> _loadFamilyDetails() async {
@@ -239,6 +241,7 @@ class EditProfileController extends GetxController {
       });
       Get.back();
       Get.snackbar('Success', 'Family details updated successfully');
+      _refreshProfile();
     } catch (e) {
       Get.snackbar('Error', 'Failed to update family details');
     } finally {
@@ -248,7 +251,7 @@ class EditProfileController extends GetxController {
 
   Future<void> editAbout() async {
     await _loadAbout();
-    Get.to(() => const EditAboutScreen());
+    Get.toNamed(AppRoutes.editAbout);
   }
 
   Future<void> _loadAbout() async {
@@ -272,6 +275,7 @@ class EditProfileController extends GetxController {
       });
       Get.back();
       Get.snackbar('Success', 'About info updated successfully');
+      _refreshProfile();
     } catch (e) {
       Get.snackbar('Error', 'Failed to update about info');
     } finally {
@@ -281,7 +285,7 @@ class EditProfileController extends GetxController {
 
   Future<void> editPreferences() async {
     await _loadPreferences();
-    Get.to(() => const EditPartnerPreferencesScreen());
+    Get.toNamed(AppRoutes.editPreferences);
   }
 
   Future<void> _loadPreferences() async {
@@ -317,6 +321,7 @@ class EditProfileController extends GetxController {
       });
       Get.back();
       Get.snackbar('Success', 'Preferences updated successfully');
+      _refreshProfile();
     } catch (e) {
       Get.snackbar('Error', 'Failed to update preferences');
     } finally {
@@ -342,12 +347,23 @@ class EditProfileController extends GetxController {
         if (base64Image != null) {
           await _userRepository.updateProfilePhoto(base64Image);
           Get.snackbar('Success', 'Profile photo updated successfully');
+          _refreshProfile();
         }
       }
     } catch (e) {
       Get.snackbar('Error', 'Failed to update profile photo: ${e.toString()}');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  void _refreshProfile() {
+    try {
+      if (Get.isRegistered<MyProfileController>()) {
+        Get.find<MyProfileController>().loadProfile();
+      }
+    } catch (e) {
+      // Ignore if controller not found
     }
   }
 

@@ -73,7 +73,7 @@ class PersonalDetailsStep extends StatelessWidget {
                 label: 'Family Type',
                 hint: 'Select family type',
                 value: controller.familyType.value,
-                items: const ['Nuclear', 'Joint', 'Other'],
+                items: const ['Nuclear Family', 'Joint Family', 'Other'],
                 onChanged: (value) => controller.familyType.value = value,
               )),
           const SizedBox(height: 16),

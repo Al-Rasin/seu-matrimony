@@ -3,13 +3,11 @@ import 'package:get/get.dart';
 import 'edit_profile_controller.dart';
 import '../../../app/themes/app_text_styles.dart';
 
-class EditProfileScreen extends StatelessWidget {
+class EditProfileScreen extends GetView<EditProfileController> {
   const EditProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(EditProfileController());
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),

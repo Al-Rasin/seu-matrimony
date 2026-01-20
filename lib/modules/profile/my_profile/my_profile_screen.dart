@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
 import 'my_profile_controller.dart';
+import '../edit_profile/edit_profile_controller.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../../app/themes/app_colors.dart';
 import '../../../app/themes/app_text_styles.dart';
 
-class MyProfileScreen extends StatelessWidget {
+class MyProfileScreen extends GetView<MyProfileController> {
   const MyProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(MyProfileController());
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Profile'),
@@ -161,45 +161,72 @@ class MyProfileScreen extends StatelessWidget {
               );
             }),
             const SizedBox(height: 24),
-            // Profile options
+            // Profile sections
+            _buildSectionHeader('Edit Profile'),
             _buildOption(
-              'Edit Profile',
+              'Basic Details',
               Icons.person_outline,
-              () => Get.toNamed('/edit-profile'),
+              () => Get.find<EditProfileController>().editBasicDetails(),
             ),
+            _buildOption(
+              'Personal Details',
+              Icons.favorite_border,
+              () => Get.find<EditProfileController>().editPersonalDetails(),
+            ),
+            _buildOption(
+              'Professional Details',
+              Icons.work_outline,
+              () => Get.find<EditProfileController>().editProfessionalDetails(),
+            ),
+            _buildOption(
+              'Family Details',
+              Icons.family_restroom,
+              () => Get.find<EditProfileController>().editFamilyDetails(),
+            ),
+            _buildOption(
+              'About Myself',
+              Icons.info_outline,
+              () => Get.find<EditProfileController>().editAbout(),
+            ),
+            _buildOption(
+              'Partner Preferences',
+              Icons.manage_search,
+              () => Get.find<EditProfileController>().editPreferences(),
+            ),
+
+            const SizedBox(height: 16),
+            _buildSectionHeader('Account'),
             _buildOption(
               'Subscription',
               Icons.star_outline,
-              () => Get.toNamed('/subscription'),
+              () => Get.toNamed(AppRoutes.subscription),
+              color: Colors.amber[800],
             ),
-            _buildOption(
-              'Privacy Settings',
-              Icons.lock_outline,
-              () => Get.toNamed('/privacy-settings'),
-            ),
-            _buildOption(
-              'Blocked Users',
-              Icons.block,
-              () => Get.toNamed('/blocked-users'),
-            ),
-            _buildOption(
-              'Help & Support',
-              Icons.help_outline,
-              () {},
-            ),
-            _buildOption(
-              'Terms & Conditions',
-              Icons.description_outlined,
-              () {},
-            ),
-            const Divider(),
+
+            const SizedBox(height: 16),
+            _buildSectionHeader('System'),
             _buildOption(
               'Logout',
               Icons.logout,
               controller.logout,
               color: Colors.red,
             ),
+            const SizedBox(height: 40),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Text(
+        title.toUpperCase(),
+        style: AppTextStyles.labelMedium.copyWith(
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
         ),
       ),
     );
@@ -208,12 +235,22 @@ class MyProfileScreen extends StatelessWidget {
   Widget _buildOption(String title, IconData icon, VoidCallback onTap,
       {Color? color}) {
     return ListTile(
-      leading: Icon(icon, color: color ?? AppColors.iconPrimary),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: (color ?? AppColors.primary).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: color ?? AppColors.primary, size: 20),
+      ),
       title: Text(
         title,
-        style: TextStyle(color: color ?? AppColors.textPrimary),
+        style: AppTextStyles.bodyLarge.copyWith(
+          fontWeight: FontWeight.w500,
+          color: color,
+        ),
       ),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: const Icon(Icons.chevron_right, size: 20),
       onTap: onTap,
     );
   }

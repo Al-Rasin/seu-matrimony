@@ -41,6 +41,7 @@ abstract class AppRoutes {
   static const editPersonalDetails = '/edit-personal-details';
   static const editProfessionalDetails = '/edit-professional-details';
   static const editFamilyDetails = '/edit-family-details';
+  static const editAbout = '/edit-about';
   static const editPreferences = '/edit-preferences';
 
   // Subscription

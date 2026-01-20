@@ -28,6 +28,12 @@ import '../../modules/chat/chat_list/chat_list_screen.dart';
 import '../../modules/chat/chat_detail/chat_detail_screen.dart';
 import '../../modules/profile/my_profile/my_profile_screen.dart';
 import '../../modules/profile/edit_profile/edit_profile_screen.dart';
+import '../../modules/profile/edit_profile/edit_basic_details_screen.dart';
+import '../../modules/profile/edit_profile/edit_personal_details_screen.dart';
+import '../../modules/profile/edit_profile/edit_professional_details_screen.dart';
+import '../../modules/profile/edit_profile/edit_family_details_screen.dart';
+import '../../modules/profile/edit_profile/edit_about_screen.dart';
+import '../../modules/profile/edit_profile/edit_partner_preferences_screen.dart';
 import '../../modules/subscription/subscription_screen.dart';
 import '../../modules/settings/settings_screen.dart';
 import '../../modules/settings/privacy_settings/privacy_settings_screen.dart';
@@ -139,6 +145,42 @@ class AppPages {
     GetPage(
       name: AppRoutes.editProfile,
       page: () => const EditProfileScreen(),
+      binding: ProfileBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.editBasicDetails,
+      page: () => const EditBasicDetailsScreen(),
+      binding: ProfileBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.editPersonalDetails,
+      page: () => const EditPersonalDetailsScreen(),
+      binding: ProfileBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.editProfessionalDetails,
+      page: () => const EditProfessionalDetailsScreen(),
+      binding: ProfileBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.editFamilyDetails,
+      page: () => const EditFamilyDetailsScreen(),
+      binding: ProfileBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.editAbout,
+      page: () => const EditAboutScreen(),
+      binding: ProfileBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: AppRoutes.editPreferences,
+      page: () => const EditPartnerPreferencesScreen(),
       binding: ProfileBinding(),
       transition: Transition.cupertino,
     ),
