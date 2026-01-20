@@ -128,6 +128,8 @@ class NotificationsScreen extends GetView<NotificationController> {
               
               if (type == 'interest_received' || type == 'interest_accepted') {
                 Get.toNamed(AppRoutes.profileDetail, arguments: {'matchId': targetId});
+              } else if (type == 'message_received') {
+                Get.toNamed(AppRoutes.chatDetail, arguments: {'conversationId': targetId});
               }
               // Add other types here if needed (e.g., chat message)
             }
